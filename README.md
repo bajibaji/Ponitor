@@ -1,69 +1,96 @@
 # Ponitor
 
-A single-binary Go system monitor that exposes CPU, memory, network and GPU metrics over LAN via a terminal-style web dashboard. No runtime, ~14MB RAM.
+> [中文](./README-zh.md)
 
-**把旧手机变成 PC 的专属性能监视器。** 在 PC 上运行这个二进制文件，同一局域网内的旧手机打开浏览器 —— 你就多了一块实时显示 CPU、内存、GPU、网络流量的"小屏幕"。
+A single-binary Go system monitor that exposes CPU, memory, network and GPU metrics over LAN via a terminal-style web dashboard. No runtime, <5MB binary, ~14MB RAM.
 
-![screenshot](./screenshot.png)
+**Turn your old phone into a dedicated performance monitor.** Run the binary on your PC, open the browser on an old phone over the same LAN — you get a real-time "second screen" showing CPU, memory, GPU, and network traffic.
 
-## 怎么用
+<p align="center"><img src="./screenshot.png" alt="screenshot"></p>
 
-### 1. 下载/编译
+## Performance
+
+| Metric | Value |
+|--------|-------|
+| Binary size | <5 MB (compiled with `-ldflags="-s -w"`) |
+| Runtime memory | ~14 MB |
+| CPU overhead | Near zero (polls every 2s, sleeps the rest) |
+| Dependencies | None — no Go, Node, or any runtime needed |
+| Frontend | Static HTML — no app install on the phone, just a browser |
+
+## Quick Start
+
+### 1. Build
 
 ```bash
-# 确保已安装 Go 1.26+
+# Requires Go 1.26+
 go build -ldflags="-s -w" -o monitor.exe .
-# 或者直接双击 rebuild.bat
+# Or double-click rebuild.bat (Windows)
 ```
 
-### 2. 启动
+### 2. Run
 
 ```bash
 monitor.exe
-# 或者直接双击 start.bat
+# Or double-click start.bat (Windows)
 ```
 
-### 3. 在手机上打开
+### 3. Open on phone
 
-- 手机连同一个 WiFi
-- 浏览器访问 `http://你的PC内网IP:8080`
+- Connect the phone to the same WiFi
+- Open `http://<YOUR_PC_LAN_IP>:8080` in the browser
 
-`start.bat` 启动后会自动打印出完整 URL。
+`start.bat` prints the full URL automatically on launch.
 
-### 停止
+### Stop
 
-- 关掉命令行窗口
-- 或双击 `stop.bat`
+- Close the terminal window
+- Or double-click `stop.bat`
 
-## 监控项
+### Build for other platforms
 
-| 指标 | 数据来源 |
-|------|----------|
-| CPU 使用率 | `gopsutil/cpu` |
-| 内存使用量/占比 | `gopsutil/mem` |
-| GPU 利用率/VRAM/温度 | `nvidia-smi` |
-| 网络收发速率 | `gopsutil/net` |
+```bash
+# Linux
+GOOS=linux GOARCH=amd64 go build -ldflags="-s -w" -o monitor .
 
-- 每 2 秒刷新一次
-- 使用率 >70% 黄色预警，>85% 红色告警
-- 横屏自动切换 2×2 网格布局，适配手机横屏
+# macOS (Intel)
+GOOS=darwin GOARCH=amd64 go build -ldflags="-s -w" -o monitor .
 
-## 项目结构
+# macOS (Apple Silicon)
+GOOS=darwin GOARCH=arm64 go build -ldflags="-s -w" -o monitor .
+```
+
+## Metrics
+
+| Metric | Source |
+|--------|--------|
+| CPU usage | `gopsutil/cpu` |
+| Memory usage | `gopsutil/mem` |
+| GPU utilization / VRAM / temp | `nvidia-smi` |
+| Network I/O rate | `gopsutil/net` |
+
+- Polls every 2 seconds
+- >70% usage → yellow warning, >85% → red alert
+- Landscape rotates to a 2×2 grid layout, optimized for phone landscape mode
+
+## Project Structure
 
 ```
 monitor/
-├── main.go          # 后端：采集 + HTTP API
-├── dashboard.html   # 前端：终端风格仪表盘（嵌入二进制）
-├── go.mod / go.sum  # Go 模块依赖
-├── monitor.exe      # 编译产物
-├── start.bat        # 启动（Windows）
-├── stop.bat         # 停止（Windows）
-└── rebuild.bat      # 重新编译并启动（Windows）
+├── main.go          # Backend: data collection + HTTP API
+├── dashboard.html   # Frontend: terminal-style dashboard (embedded in binary)
+├── go.mod / go.sum  # Go module dependencies
+├── monitor.exe      # Compiled binary
+├── start.bat        # Start (Windows)
+├── stop.bat         # Stop (Windows)
+├── rebuild.bat      # Rebuild + start (Windows)
+├── README.md        # This file
+└── README-zh.md     # Chinese version
 ```
 
-## 技术栈
+## Tech Stack
 
-- **后端**: Go + [gopsutil/v4](https://github.com/shirou/gopsutil)
-- **前端**: 纯 HTML/CSS/JS，零依赖，模拟 CRT 终端风格
-- **API**: HTTP JSON，`/api/cpu` `/api/mem` `/api/gpu` `/api/network`
-- **跨平台**: Linux / macOS 上也能编译运行（GPU 部分需 NVIDIA 显卡 + nvidia-smi）
+- **Backend**: Go + [gopsutil/v4](https://github.com/shirou/gopsutil)
+- **Frontend**: Vanilla HTML/CSS/JS, zero dependencies, CRT terminal aesthetic
+- **API**: HTTP JSON — `/api/cpu` `/api/mem` `/api/gpu` `/api/network`
+- **Cross-platform**: Works on Linux / macOS too (GPU requires NVIDIA GPU + nvidia-smi)
