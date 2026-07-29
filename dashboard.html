@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>TTY1 - System Monitor</title>
+<style>
+  :root {
+    --term-bg: #0c0d0e;
+    --term-green: #00ff66;
+    --term-green-dim: #006622;
+    --term-warn: #ffaa00;
+    --term-crit: #ff3333;
+    --term-gray: #556655;
+    --font-cli: 'ZPix', 'Fira Code', 'VT323', 'Consolas', monospace;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html, body {
+    background: var(--term-bg);
+    color: var(--term-green);
+    font-family: var(--font-cli);
+    font-size: 14px;
+    line-height: 1.4;
+    min-height: 100dvh;
+    overscroll-behavior: none;
+    overflow-x: hidden;
+    -webkit-font-smoothing: none;
+    -moz-osx-font-smoothing: unset;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  /* CRT scanlines */
+  body::before {
+    content: " ";
+    display: block;
+    position: fixed;
+    top: 0; left: 0; bottom: 0; right: 0;
+    background: linear-gradient(rgba(18,16,16,0) 50%, rgba(0,0,0,0.2) 50%);
+    background-size: 100% 4px;
+    z-index: 99;
+    pointer-events: none;
+    opacity: 0.5;
+  }
+
+  .wrapper { 
+    width: 100%;
+    min-height: 100dvh;
+    padding: 12px; 
+    max-width: 520px; 
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    padding-top: max(10px, env(safe-area-inset-top));
+    padding-bottom: max(10px, env(safe-area-inset-bottom));
+    padding-left: max(12px, env(safe-area-inset-left));
+    padding-right: max(12px, env(safe-area-inset-right));
+  }
+  .wrapper::after {
+    content: "";
+    display: block;
+    height: 1px;
+    flex-shrink: 0;
+  }
+
+  /* CLI Header */
+  .cli-header {
+    border-bottom: 1px dashed var(--term-green);
+    padding-bottom: 6px; 
+    margin-bottom: 10px;
+    display: flex; 
+    justify-content: space-between;
+    font-weight: 600; 
+    font-size: 14px;
+    flex-shrink: 0;
+  }
+  .prompt { color: var(--term-green); }
+  .cursor {
+    display: inline-block;
+    width: 8px; height: 15px;
+    background: var(--term-green);
+    vertical-align: middle;
+    animation: blink 1s infinite;
+  }
+  @keyframes blink { 0%,49% { opacity:1; } 50%,100% { opacity:0; } }
+
+  /* Grid */
+  .grid-container { 
+    display: grid; 
+    grid-template-columns: 1fr; 
+    grid-auto-rows: minmax(180px, auto);
+    gap: 12px;
+    flex-shrink: 0;
+  }
+
+  /* Box */
+  .box {
+    border: 1px solid var(--term-green-dim);
+    padding: 14px 16px;
+    background: rgba(0,255,102,0.02);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+  .box-title {
+    font-size: 12px;
+    color: var(--term-bg);
+    background: var(--term-green);
+    display: inline-block;
+    padding: 0 6px;
+    margin-bottom: 4px;
+    font-weight: 600;
+    align-self: flex-start;
+  }
+
+  /* Rows */
+  .row {
+    display: flex; 
+    justify-content: space-between;
+    margin-bottom: 2px;
+  }
+  .label { color: var(--term-green); }
+  .val { 
+    font-weight: 600; 
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* ASCII bar */
+  .ascii-bar-wrap {
+    display: flex; 
+    align-items: center; 
+    margin: 4px 0;
+    font-family: var(--font-cli);
+    width: 100%;
+  }
+  .ascii-bar {
+    letter-spacing: 0px;
+    white-space: pre;
+    font-size: 13px;
+    width: 100%;
+    display: block;
+    overflow: hidden;
+  }
+
+  /* Colors */
+  .warn { color: var(--term-warn) !important; }
+  .crit { color: var(--term-crit) !important; }
+
+  /* ── 移动端横屏全屏拉满优化 (Landscape) ── */
+  @media (orientation: landscape) {
+    .wrapper { 
+      max-width: 100% !important; /* 解除宽度限制，撑满屏幕 */
+      padding-left: max(16px, env(safe-area-inset-left));
+      padding-right: max(16px, env(safe-area-inset-right));
+      padding-top: max(8px, env(safe-area-inset-top));
+      padding-bottom: max(8px, env(safe-area-inset-bottom));
+    }
+    
+    .cli-header { 
+      margin-bottom: 8px; 
+      padding-bottom: 4px; 
+      font-size: 13px; 
+    }
+    
+    .grid-container {
+      grid-template-columns: repeat(2, 1fr); /* 2x2 网格填充 */
+      gap: 8px 12px;
+      align-content: stretch;
+    }
+    
+    .box { 
+      padding: 12px 14px; 
+    }
+    
+    .box-title { 
+      margin-bottom: 4px; 
+      font-size: 11px; 
+      padding: 0 5px;
+    }
+    
+    .row { 
+      margin-bottom: 2px; 
+      font-size: 13px; /* 适当调大字体以适应横屏容器 */
+    }
+    
+    .ascii-bar { 
+      font-size: 13px; 
+    }
+  }
+</style>
+</head>
+<body>
+
+<div class="wrapper">
+  <div class="cli-header">
+    <div><span class="prompt">root@DanJuan:~#</span> monitor -v<span class="cursor"></span></div>
+    <div id="sys-clock">--:--:--</div>
+  </div>
+
+  <div class="grid-container">
+    <!-- CPU -->
+    <div class="box">
+      <div class="box-title">[01] CPU</div>
+      <div class="row">
+        <span class="label">Usage:</span>
+        <span class="val" id="cpu-pct">--%</span>
+      </div>
+      <div class="ascii-bar-wrap">
+        <span id="cpu-bar" class="ascii-bar">[....................]</span>
+      </div>
+      <div class="row">
+        <span class="label" style="color:var(--term-gray)">Cores Active:</span>
+        <span class="val" id="cpu-cores" style="color:var(--term-gray)">--</span>
+      </div>
+    </div>
+
+    <!-- Memory -->
+    <div class="box">
+      <div class="box-title">[02] MEMORY</div>
+      <div class="row">
+        <span class="label">Usage:</span>
+        <span class="val" id="mem-pct">--%</span>
+      </div>
+      <div class="ascii-bar-wrap">
+        <span id="mem-bar" class="ascii-bar">[....................]</span>
+      </div>
+      <div class="row">
+        <span class="label" style="color:var(--term-gray)">Used / Total:</span>
+        <span class="val" id="mem-detail" style="color:var(--term-gray)">-- / --</span>
+      </div>
+    </div>
+
+    <!-- GPU -->
+    <div class="box" id="gpu-box">
+      <div class="box-title">[03] GPU</div>
+      <div class="row">
+        <span class="label" id="gpu-name">GPU:</span>
+        <span class="val" id="gpu-pct">--%</span>
+      </div>
+      <div class="ascii-bar-wrap">
+        <span id="gpu-bar" class="ascii-bar">[....................]</span>
+      </div>
+      <div class="row">
+        <span class="label" style="color:var(--term-gray)">VRAM: <span id="gpu-vram" style="color:var(--term-green)">--</span></span>
+        <span class="label" style="color:var(--term-gray)">TEMP: <span id="gpu-temp" style="color:var(--term-green)">--°C</span></span>
+      </div>
+    </div>
+
+    <!-- Network -->
+    <div class="box">
+      <div class="box-title">[04] NETWORK I/O</div>
+      <div class="row">
+        <span class="label">Interface:</span>
+        <span class="val" id="net-iface">--</span>
+      </div>
+      <div class="row">
+        <span class="label">DOWN:</span>
+        <span class="val" id="net-down">0 B/s</span>
+      </div>
+      <div class="row">
+        <span class="label">UP:</span>
+        <span class="val" id="net-up">0 B/s</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div style="height: 80dvh;"></div>
+
+<script>
+const API = '/api';
+const BAR_LEN = 20;
+
+function makeAsciiBar(pct) {
+  const n = Math.round((BAR_LEN * Math.min(pct, 100)) / 100);
+  return '[' + '█'.repeat(n) + '.'.repeat(BAR_LEN - n) + ']';
+}
+
+function statusClass(pct) {
+  if (pct > 85) return 'crit';
+  if (pct > 70) return 'warn';
+  return '';
+}
+
+function fmtSpeed(bps) {
+  if (!bps) return '0 B/s';
+  const u = ['B/s','KB/s','MB/s','GB/s']; let i = 0, v = bps;
+  while (v >= 1024 && i < u.length-1) { v /= 1024; i++; }
+  return v.toFixed(i===0?0:1) + ' ' + u[i];
+}
+
+function fmtSize(b) {
+  if (b == null) return '--';
+  const u = ['B','KB','MB','GB','TB']; let i = 0, v = b;
+  while (v >= 1024 && i < u.length-1) { v /= 1024; i++; }
+  return v.toFixed(i===0?0:1) + ' ' + u[i];
+}
+
+function fmtMem(mb) {
+  if (mb == null) return '--';
+  if (mb >= 1024) return (mb/1024).toFixed(1) + ' GB';
+  return mb + ' MB';
+}
+
+async function fetchAPI(p) {
+  const r = await fetch(`${API}/${p}`);
+  if (!r.ok) throw new Error(p);
+  return r.json();
+}
+
+async function update() {
+  document.getElementById('sys-clock').textContent =
+    new Date().toTimeString().split(' ')[0];
+
+  try {
+    const [cpu, mem, gpu, net] = (await Promise.allSettled([
+      fetchAPI('cpu'), fetchAPI('mem'), fetchAPI('gpu'), fetchAPI('network')
+    ])).map(r => r.status==='fulfilled'?r.value:null);
+
+    // CPU
+    if (cpu) {
+      const pct = parseFloat(cpu.total.toFixed(1));
+      const el = document.getElementById('cpu-pct');
+      el.textContent = pct + '%'; el.className = 'val ' + statusClass(pct);
+      const bar = document.getElementById('cpu-bar');
+      bar.textContent = makeAsciiBar(pct);
+      bar.className = 'ascii-bar ' + statusClass(pct);
+      document.getElementById('cpu-cores').textContent = (cpu.cpucore||'--') + ' Cores';
+    }
+
+    // Memory
+    if (mem) {
+      const pct = parseFloat(mem.percent.toFixed(1));
+      const el = document.getElementById('mem-pct');
+      el.textContent = pct + '%'; el.className = 'val ' + statusClass(pct);
+      const bar = document.getElementById('mem-bar');
+      bar.textContent = makeAsciiBar(pct);
+      bar.className = 'ascii-bar ' + statusClass(pct);
+      document.getElementById('mem-detail').textContent =
+        fmtSize(mem.used) + ' / ' + fmtSize(mem.total);
+    }
+
+    // GPU
+    const gb = document.getElementById('gpu-box');
+    if (gpu) {
+      gb.style.display = '';
+      document.getElementById('gpu-name').textContent =
+        'GPU (' + gpu.name.replace('NVIDIA GeForce ','') + '):';
+      const pct = parseFloat(gpu.utilization.toFixed(1));
+      const el = document.getElementById('gpu-pct');
+      el.textContent = pct + '%'; el.className = 'val ' + statusClass(pct);
+      const bar = document.getElementById('gpu-bar');
+      bar.textContent = makeAsciiBar(pct);
+      bar.className = 'ascii-bar ' + statusClass(pct);
+      document.getElementById('gpu-vram').textContent =
+        fmtMem(gpu.mem_used) + ' / ' + fmtMem(gpu.mem_total);
+      const t = document.getElementById('gpu-temp');
+      t.textContent = gpu.temperature + '°C';
+      t.className = gpu.temperature > 80 ? 'crit' : gpu.temperature > 65 ? 'warn' : '';
+    } else {
+      gb.style.display = 'none';
+    }
+
+    // Network
+    if (net) {
+      const a = net
+        .filter(n => n.bytes_recv_rate_per_sec > 0 || n.bytes_sent_rate_per_sec > 0)
+        .sort((x,y) => (y.bytes_recv_rate_per_sec+y.bytes_sent_rate_per_sec) -
+                       (x.bytes_recv_rate_per_sec+x.bytes_sent_rate_per_sec));
+      if (a.length) {
+        document.getElementById('net-iface').textContent = a[0].interface_name;
+        document.getElementById('net-down').textContent = fmtSpeed(a[0].bytes_recv_rate_per_sec);
+        document.getElementById('net-up').textContent = fmtSpeed(a[0].bytes_sent_rate_per_sec);
+      }
+    }
+  } catch(e) { console.error(e); }
+}
+
+update();
+setInterval(update, 2000);
+
+// Safari: scroll 1px to collapse browser chrome
+setTimeout(() => window.scrollTo(0, 1), 100);
+setTimeout(() => window.scrollTo(0, 1), 500);
+</script>
+</body>
+</html>
