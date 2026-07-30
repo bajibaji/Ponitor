@@ -15,6 +15,24 @@
     --font-cli: 'ZPix', 'Fira Code', 'VT323', 'Consolas', monospace;
   }
 
+  /* 主题：通过 body[data-theme] 切换 */
+  body[data-theme="green"] {
+    --term-bg: #0c0d0e; --term-green: #00ff66; --term-green-dim: #006622;
+    --term-warn: #ffaa00; --term-crit: #ff3333; --term-gray: #556655;
+  }
+  body[data-theme="amber"] {
+    --term-bg: #0d0a05; --term-green: #ffb000; --term-green-dim: #664400;
+    --term-warn: #ff8800; --term-crit: #ff3333; --term-gray: #665533;
+  }
+  body[data-theme="blue"] {
+    --term-bg: #050a0d; --term-green: #00ccff; --term-green-dim: #004466;
+    --term-warn: #ffaa00; --term-crit: #ff3333; --term-gray: #335566;
+  }
+  body[data-theme="mono"] {
+    --term-bg: #000000; --term-green: #ffffff; --term-green-dim: #555555;
+    --term-warn: #aaaaaa; --term-crit: #ffffff; --term-gray: #777777;
+  }
+
   * { margin: 0; padding: 0; box-sizing: border-box; }
 
   html, body {
@@ -377,8 +395,18 @@ async function update() {
   } catch(e) { console.error(e); }
 }
 
-update();
-setInterval(update, 2000);
+// 自调度循环：每轮重读配置，托盘菜单改间隔/主题即时生效
+let refreshMs = 2000;
+async function tick() {
+  update();
+  try {
+    const c = await (await fetch(API + '/config')).json();
+    if (c.interval_ms > 0) refreshMs = c.interval_ms;
+    document.body.dataset.theme = c.theme || 'green';
+  } catch(e) {}
+  setTimeout(tick, refreshMs);
+}
+tick();
 
 // Safari: scroll 1px to collapse browser chrome
 setTimeout(() => window.scrollTo(0, 1), 100);

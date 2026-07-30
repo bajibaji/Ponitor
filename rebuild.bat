@@ -7,7 +7,8 @@ for /f "tokens=5" %%a in ('netstat -ano ^| findstr ":8080.*LISTENING"') do taskk
 timeout /t 1 /nobreak >nul
 
 echo Building...
-go build -ldflags="-s -w" -o monitor.exe .
+windres -i icon.rc -O coff -o icon_windows_amd64.syso 2>nul
+go build -ldflags="-H=windowsgui -s -w" -o monitor.exe .
 if %ERRORLEVEL% NEQ 0 (
     echo BUILD FAILED!
     pause
