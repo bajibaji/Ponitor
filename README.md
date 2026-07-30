@@ -1,60 +1,60 @@
 # Ponitor
 
-> [中文](./README-zh.md)
+> [English](./README-en.md)
 
-A single-binary Go system monitor that exposes CPU, memory, network and GPU metrics over LAN via a terminal-style web dashboard. No runtime, <5MB binary, ~14MB RAM. Runs silently in the system tray with a right-click menu for scan interval, theme switching, and quit.
+一个 Go 编写的单二进制系统性能监视器，通过局域网提供 CPU、内存、网络和 GPU 数据的终端风格 Web 仪表盘。无运行时依赖，<5MB 二进制，~14MB 内存。后台静默运行于系统托盘，右键菜单可切换扫描间隔、主题和退出。
 
-**Turn your old phone into a dedicated performance monitor.** Run the binary on your PC, open the browser on an old phone over the same LAN — you get a real-time "second screen" showing CPU, memory, GPU, and network traffic.
+**把旧手机变成 PC 的专属性能监视器。** 在 PC 上运行这个二进制文件，同一局域网内的旧手机打开浏览器 —— 你就多了一块实时显示 CPU、内存、GPU、网络流量的"小屏幕"。
 
 <p align="center"><img src="./screenshot.png" alt="screenshot"></p>
 
-## Performance
+## 性能
 
-| Metric | Value |
-|--------|-------|
-| Binary size | <5 MB (compiled with `-ldflags="-s -w"`) |
-| Runtime memory | ~14 MB |
-| CPU overhead | Near zero (polls every 2s by default, sleeps the rest) |
-| Dependencies | None — no Go, Node, or any runtime needed |
-| Frontend | Static HTML — no app install on the phone, just a browser |
+| 指标 | 数值 |
+|------|------|
+| 二进制体积 | <5 MB（`-ldflags="-s -w"` 编译） |
+| 运行时内存 | ~14 MB |
+| CPU 开销 | 基本为零（默认每 2 秒采集一次，其余时间休眠） |
+| 运行环境 | 无依赖，不装 Go、不装 Node、不装任何运行时 |
+| 前端 | 纯静态 HTML，手机无需安装 App，浏览器打开即用 |
 
-## Quick Start
+## 快速开始
 
-### 1. Build
+### 1. 编译
 
 ```bash
-# Requires Go 1.26+ (Windows)
+# 确保已安装 Go 1.26+（Windows）
 go build -ldflags="-H=windowsgui -s -w" -o monitor.exe .
-# Or double-click rebuild.bat (Windows)
+# 或者直接双击 rebuild.bat
 ```
 
-### 2. Run
+### 2. 启动
 
 ```bash
 monitor.exe
-# Or double-click start.bat (Windows)
+# 或者直接双击 start.bat
 ```
 
-### 3. Open on phone
+### 3. 在手机上打开
 
-- Connect the phone to the same WiFi
-- Open `http://<YOUR_PC_LAN_IP>:8080` in the browser
+- 手机连同一个 WiFi
+- 浏览器访问 `http://你的PC内网IP:8080`
 
-`start.bat` launches the monitor silently in the background (no window). A system tray icon appears — right-click it for:
+`start.bat` 会在后台静默启动（无窗口），任务栏通知区出现托盘图标 —— 右键菜单（从上到下）：
 
-- **Open Webpage** — open the dashboard in the default browser
-- **Scan Interval** — 0.5s / 1s / 2s / 5s (applied live, no page reload)
-- **Theme** — Matrix Green / Amber / Cyber Blue / Classic Mono (applied live)
-- **Quit**
+- **打开网页** —— 用默认浏览器打开仪表盘
+- **扫描间隔** —— 0.5s / 1s / 2s / 5s（即时生效，无需刷新页面）
+- **主题** —— 黑绿 Matrix / 琥珀金 Amber / 赛博蓝 Cyber Blue / 黑白 Classic Mono（即时生效）
+- **退出**
 
-Settings persist to `config.json` and survive restarts.
+设置持久化到 `config.json`，重启后保留。
 
-### Stop
+### 停止
 
-- Close the terminal window
-- Or double-click `stop.bat`
+- 关掉命令行窗口
+- 或双击 `stop.bat`
 
-### Build for other platforms
+### 编译到其他平台
 
 ```bash
 # Linux
@@ -67,42 +67,42 @@ GOOS=darwin GOARCH=amd64 go build -ldflags="-s -w" -o monitor .
 GOOS=darwin GOARCH=arm64 go build -ldflags="-s -w" -o monitor .
 ```
 
-## Metrics
+## 监控项
 
-| Metric | Source |
-|--------|--------|
-| CPU usage | `gopsutil/cpu` |
-| Memory usage | `gopsutil/mem` |
-| GPU utilization / VRAM / temp | `nvidia-smi` |
-| Network I/O rate | `gopsutil/net` |
+| 指标 | 数据来源 |
+|------|----------|
+| CPU 使用率 | `gopsutil/cpu` |
+| 内存使用量/占比 | `gopsutil/mem` |
+| GPU 利用率/VRAM/温度 | `nvidia-smi` |
+| 网络收发速率 | `gopsutil/net` |
 
-- Configurable poll interval (0.5s / 1s / 2s / 5s) via tray menu, applied live to both backend sampling and frontend refresh
-- >70% usage → yellow warning, >85% → red alert
-- Landscape rotates to a 2×2 grid layout, optimized for phone landscape mode
-- 4 switchable themes: Matrix Green, Amber, Cyber Blue, Classic Mono
+- 扫描间隔可通过托盘菜单切换（0.5s / 1s / 2s / 5s），后端采样与前端刷新均即时生效
+- 使用率 >70% 黄色预警，>85% 红色告警
+- 横屏自动切换 2×2 网格布局，适配手机横屏
+- 4 种可切换主题：黑绿 Matrix、琥珀金 Amber、赛博蓝 Cyber Blue、黑白 Classic Mono
 
-## Project Structure
+## 项目结构
 
 ```
 monitor/
-├── main.go          # Backend: data collection + HTTP API + tray menu
-├── dashboard.html   # Frontend: terminal-style dashboard (embedded in binary)
-├── hide_windows.go  # Windows: hide nvidia-smi console + open browser
-├── hide_other.go    # Non-Windows: no-op stubs
-├── icon.ico         # Tray icon (embedded)
-├── config.json      # Persisted settings (interval + theme)
-├── go.mod / go.sum  # Go module dependencies
-├── monitor.exe      # Compiled binary
-├── start.bat        # Start (Windows)
-├── stop.bat         # Stop (Windows)
-├── rebuild.bat      # Rebuild + start (Windows)
-├── README.md        # This file
-└── README-zh.md     # Chinese version
+├── main.go          # 后端：采集 + HTTP API + 托盘菜单
+├── dashboard.html   # 前端：终端风格仪表盘（嵌入二进制）
+├── hide_windows.go  # Windows：隐藏 nvidia-smi 控制台 + 打开浏览器
+├── hide_other.go    # 非 Windows：空实现
+├── icon.ico         # 托盘图标（嵌入）
+├── config.json      # 持久化设置（间隔 + 主题）
+├── go.mod / go.sum  # Go 模块依赖
+├── monitor.exe      # 编译产物
+├── start.bat        # 启动
+├── stop.bat         # 停止
+├── rebuild.bat      # 重新编译并启动
+├── README.md        # 本文件
+└── README-en.md     # 英文版说明
 ```
 
-## Tech Stack
+## 技术栈
 
-- **Backend**: Go + [gopsutil/v4](https://github.com/shirou/gopsutil) + [getlantern/systray](https://github.com/getlantern/systray)
-- **Frontend**: Vanilla HTML/CSS/JS, zero dependencies, CRT terminal aesthetic
-- **API**: HTTP JSON — `/api/cpu` `/api/mem` `/api/gpu` `/api/network` `/api/config` `/api/theme` `/api/interval`
-- **Cross-platform**: Works on Linux / macOS too (GPU requires NVIDIA GPU + nvidia-smi)
+- **后端**: Go + [gopsutil/v4](https://github.com/shirou/gopsutil) + [getlantern/systray](https://github.com/getlantern/systray)
+- **前端**: 纯 HTML/CSS/JS，零依赖，模拟 CRT 终端风格
+- **API**: HTTP JSON，`/api/cpu` `/api/mem` `/api/gpu` `/api/network` `/api/config` `/api/theme` `/api/interval`
+- **跨平台**: Linux / macOS 上也能编译运行（GPU 部分需 NVIDIA 显卡 + nvidia-smi）
