@@ -2,21 +2,25 @@
 
 > [中文](./README.md)
 
-A single-binary Go system monitor that exposes CPU, memory, network and GPU metrics over LAN via a terminal-style web dashboard. No runtime, <5MB binary, ~14MB RAM. Runs silently in the system tray with a right-click menu for scan interval, theme switching, and quit.
+**A CRT terminal-style LAN system monitor — with near-zero impact on your host.**
+
+A single-binary Go system monitor that replicates the look and feel of a vintage CRT terminal in your browser: scan lines, phosphor glow, character bloom — all there. Real-time CPU, memory, GPU, and network traffic. Runs silently in the system tray with a right-click menu for scan interval and theme switching.
+
+~14 MB RAM, <5 MB binary, CPU sits at **near zero** most of the time. No Go, Node, or any runtime to install. No app needed on the phone. Built to sit in the background and turn an old phone into a permanent dedicated performance monitor.
 
 **Turn your old phone into a dedicated performance monitor.** Run the binary on your PC, open the browser on an old phone over the same LAN — you get a real-time "second screen" showing CPU, memory, GPU, and network traffic.
 
 <p align="center"><img src="./screenshot.png" alt="screenshot"></p>
 
-## Performance
+## Performance Overhead
 
 | Metric | Value |
 |--------|-------|
 | Binary size | <5 MB (compiled with `-ldflags="-s -w"`) |
 | Runtime memory | ~14 MB |
-| CPU overhead | Near zero (polls every 2s by default, sleeps the rest) |
-| Dependencies | None — no Go, Node, or any runtime needed |
-| Frontend | Static HTML — no app install on the phone, just a browser |
+| CPU overhead | **Near zero** (wakes every 2s to poll, deep sleeps the rest) |
+| Dependencies | **Zero** — no Go, Node, or any runtime needed |
+| Frontend | Static HTML — **no app install**, just a browser |
 
 ## Quick Start
 
