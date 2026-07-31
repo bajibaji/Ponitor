@@ -31,7 +31,7 @@ A single-binary Go system monitor that replicates the look and feel of a vintage
 | Metric | Value |
 |--------|-------|
 | Resident RAM | ~20 MB |
-| Idle CPU | near-zero (wakes every 2s to sample, deep-sleeps otherwise) |
+| Idle CPU | ~0.01% (measured avg 0.007%, peak 0.03% at 1s polling; lower at the default 2s; deep-sleeps otherwise) |
 | Sample interval | 0.5s / 1s / 2s / 5s adjustable |
 
 ## Quick Start
