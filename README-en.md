@@ -43,8 +43,7 @@ Settings persist to `config.json` and survive restarts.
 
 ### 3. Stop
 
-- Double-click `stop.bat`
-- Or pick **Quit** from the tray menu
+Pick **Quit** from the tray menu.
 
 ## Build from source
 
@@ -96,7 +95,6 @@ monitor/
 ├── .github/workflows/build.yml  # Windows CI build (triggered by v* tags)
 ├── Ponitor_*.exe    # Compiled binaries (Ponitor_<version>.exe)
 ├── start.bat        # Start (Windows)
-├── stop.bat         # Stop (Windows)
 ├── rebuild.bat      # Rebuild + start (Windows)
 ├── README.md        # Chinese version
 └── README-en.md     # This file

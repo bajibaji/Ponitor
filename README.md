@@ -43,8 +43,7 @@
 
 ### 3. 停止
 
-- 双击 `stop.bat`
-- 或从托盘菜单选「退出」
+从托盘菜单选「退出」即可。
 
 ## 手动编译
 
@@ -96,7 +95,6 @@ monitor/
 ├── .github/workflows/build.yml  # Windows CI 编译（tag v* 触发）
 ├── Ponitor_*.exe    # 编译产物（Ponitor_<版本>.exe）
 ├── start.bat        # 启动
-├── stop.bat         # 停止
 ├── rebuild.bat      # 重新编译并启动
 ├── README.md        # 本文件
 └── README-en.md     # 英文版说明
