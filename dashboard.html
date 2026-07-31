@@ -299,9 +299,9 @@ const BAR_LEN = 20;
 
 function makeAsciiBar(pct) {
   const n = Math.round((BAR_LEN * Math.min(pct, 100)) / 100);
-  // 每个槽位恒 2 字符宽：填 = █（2宽），空 = ..（2宽），总宽恒定
+  // 填 = █（全角16px），空 = 全角空格（同为16px），任意填充率总宽恒定
   let s = '[';
-  for (let i = 0; i < BAR_LEN; i++) s += i < n ? '█' : '..';
+  for (let i = 0; i < BAR_LEN; i++) s += i < n ? '█' : '　';
   return s + ']';
 }
 
