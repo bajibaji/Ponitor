@@ -8,7 +8,13 @@ timeout /t 1 /nobreak >nul
 
 echo Building...
 windres -i icon.rc -O coff -o icon_windows_amd64.syso 2>nul
-go build -ldflags="-H=windowsgui -s -w" -o monitor.exe .
+
+for /f "delims=- tokens=1" %%v in ('git describe --tags 2^>nul') do set "VER=%%v"
+if not defined VER set "VER=v0.0"
+set "VER=%VER:v=%"
+set "OUT=Ponitor_%VER%.exe"
+
+go build -ldflags="-H=windowsgui -s -w" -o "%OUT%" .
 if %ERRORLEVEL% NEQ 0 (
     echo BUILD FAILED!
     pause
@@ -16,8 +22,8 @@ if %ERRORLEVEL% NEQ 0 (
 )
 
 echo Starting...
-start "SystemMonitor" /MIN monitor.exe
+start "" "%OUT%"
 timeout /t 2 /nobreak >nul
 
-echo Done. Refresh your phone.
+echo Done. Output: %OUT%
 pause

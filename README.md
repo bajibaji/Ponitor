@@ -28,15 +28,15 @@
 
 ```bash
 # 确保已安装 Go 1.26+（Windows）
-go build -ldflags="-H=windowsgui -s -w" -o monitor.exe .
-# 或者直接双击 rebuild.bat
+go build -ldflags="-H=windowsgui -s -w" -o Ponitor_v0.3.exe .
+# 或者直接双击 rebuild.bat（自动从 git tag 取版本号生成 Ponitor_<版本>.exe）
 ```
 
 ### 2. 启动
 
 ```bash
-monitor.exe
-# 或者直接双击 start.bat
+Ponitor_v0.3.exe
+# 或者直接双击 start.bat（自动找到最新的 Ponitor_*.exe）
 ```
 
 ### 3. 在手机上打开
@@ -62,14 +62,25 @@ monitor.exe
 
 ```bash
 # Linux
-GOOS=linux GOARCH=amd64 go build -ldflags="-s -w" -o monitor .
+GOOS=linux GOARCH=amd64 go build -ldflags="-s -w" -o Ponitor_v0.3_linux_amd64 .
 
 # macOS (Intel)
-GOOS=darwin GOARCH=amd64 go build -ldflags="-s -w" -o monitor .
+GOOS=darwin GOARCH=amd64 go build -ldflags="-s -w" -o Ponitor_v0.3_darwin_amd64 .
 
 # macOS (Apple Silicon)
-GOOS=darwin GOARCH=arm64 go build -ldflags="-s -w" -o monitor .
+GOOS=darwin GOARCH=arm64 go build -ldflags="-s -w" -o Ponitor_v0.3_darwin_arm64 .
 ```
+
+### 通过 GitHub Actions 编译全平台
+
+推送 `v*` 标签（或手动触发）即可自动编译 Windows / Linux / macOS 的 amd64 + arm64 共 6 个产物，并上传到 Release：
+
+```bash
+git tag v0.3
+git push origin v0.3
+```
+
+产物命名：`Ponitor_<版本>_<系统>_<架构>.<扩展名>`，如 `Ponitor_v0.3_windows_amd64.exe`。
 
 ## 监控项
 
@@ -96,7 +107,8 @@ monitor/
 ├── icon.ico         # 托盘图标（嵌入）
 ├── config.json      # 持久化设置（间隔 + 主题）
 ├── go.mod / go.sum  # Go 模块依赖
-├── monitor.exe      # 编译产物
+├── .github/workflows/build.yml  # 全平台 CI 编译（tag v* 触发）
+├── Ponitor_*.exe    # 编译产物（Ponitor_<版本>.exe）
 ├── start.bat        # 启动
 ├── stop.bat         # 停止
 ├── rebuild.bat      # 重新编译并启动

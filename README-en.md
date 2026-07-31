@@ -28,15 +28,15 @@ A single-binary Go system monitor that replicates the look and feel of a vintage
 
 ```bash
 # Requires Go 1.26+ (Windows)
-go build -ldflags="-H=windowsgui -s -w" -o monitor.exe .
-# Or double-click rebuild.bat (Windows)
+go build -ldflags="-H=windowsgui -s -w" -o Ponitor_v0.3.exe .
+# Or double-click rebuild.bat — auto-names the output Ponitor_<version>.exe from the git tag
 ```
 
 ### 2. Run
 
 ```bash
-monitor.exe
-# Or double-click start.bat (Windows)
+Ponitor_v0.3.exe
+# Or double-click start.bat — auto-picks the newest Ponitor_*.exe
 ```
 
 ### 3. Open on phone
@@ -62,14 +62,25 @@ Settings persist to `config.json` and survive restarts.
 
 ```bash
 # Linux
-GOOS=linux GOARCH=amd64 go build -ldflags="-s -w" -o monitor .
+GOOS=linux GOARCH=amd64 go build -ldflags="-s -w" -o Ponitor_v0.3_linux_amd64 .
 
 # macOS (Intel)
-GOOS=darwin GOARCH=amd64 go build -ldflags="-s -w" -o monitor .
+GOOS=darwin GOARCH=amd64 go build -ldflags="-s -w" -o Ponitor_v0.3_darwin_amd64 .
 
 # macOS (Apple Silicon)
-GOOS=darwin GOARCH=arm64 go build -ldflags="-s -w" -o monitor .
+GOOS=darwin GOARCH=arm64 go build -ldflags="-s -w" -o Ponitor_v0.3_darwin_arm64 .
 ```
+
+### Build all platforms via GitHub Actions
+
+Push a `v*` tag (or trigger manually) to build all 6 artifacts — Windows / Linux / macOS × amd64 / arm64 — and attach them to a Release:
+
+```bash
+git tag v0.3
+git push origin v0.3
+```
+
+Naming: `Ponitor_<version>_<os>_<arch>.<ext>`, e.g. `Ponitor_v0.3_windows_amd64.exe`.
 
 ## Metrics
 
@@ -96,7 +107,8 @@ monitor/
 ├── icon.ico         # Tray icon (embedded)
 ├── config.json      # Persisted settings (interval + theme)
 ├── go.mod / go.sum  # Go module dependencies
-├── monitor.exe      # Compiled binary
+├── .github/workflows/build.yml  # Cross-platform CI build (triggered by v* tags)
+├── Ponitor_*.exe    # Compiled binaries (Ponitor_<version>.exe)
 ├── start.bat        # Start (Windows)
 ├── stop.bat         # Stop (Windows)
 ├── rebuild.bat      # Rebuild + start (Windows)
