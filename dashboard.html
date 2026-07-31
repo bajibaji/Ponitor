@@ -167,13 +167,11 @@
     display: block;
     overflow: hidden;
   }
-  .ascii-bar .slot { display: inline-block; width: 1em; vertical-align: middle; }
-  .ascii-bar .slot.dots { letter-spacing: 0.11em; } /* 3 点拉满 1em，点距 ~1px 连续 */
-  .ascii-bar .slot.filled {
-    width: calc(1em + 1px);           /* 相邻色块各外扩 0.5px，消除亚像素缝 */
-    margin-right: -1px;
+  .ascii-bar .bar-track { display: inline-block; position: relative; vertical-align: middle; }
+  .ascii-bar .bar-dots { letter-spacing: 0.12em; white-space: pre; }
+  .ascii-bar .bar-fill {
+    position: absolute; left: 0; top: 0; bottom: 0;
     background: currentColor;          /* 跟随文字色，warn/crit 变色自动生效 */
-    height: 0.6em;
   }
 
   /* Colors */
@@ -307,10 +305,10 @@ const BAR_LEN = 20;
 
 function makeAsciiBar(pct) {
   const n = Math.round((BAR_LEN * Math.min(pct, 100)) / 100);
-  // 填充 = 亮色块（无缝），空槽 = 3 点 + letter-spacing 拉满 1em（点距 ~1px 连续）
-  let s = '[';
-  for (let i = 0; i < BAR_LEN; i++) s += i < n ? '<span class="slot filled"></span>' : '<span class="slot dots">...</span>';
-  return s + ']';
+  // 底 = 连续点线（点距均匀），fill = 绝对定位色块盖住前 n/20；
+  // 点永远整齐，] 位置恒定（track 宽度固定）
+  let s = '[<span class="bar-track"><span class="bar-fill" style="width:' + (n * 100 / BAR_LEN) + '%"></span><span class="bar-dots">' + '.'.repeat(BAR_LEN * 2) + '</span></span>]';
+  return s;
 }
 
 function statusClass(pct) {
