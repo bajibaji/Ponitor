@@ -21,6 +21,9 @@ var dashboard []byte
 //go:embed icon.ico
 var iconData []byte
 
+//go:embed Cubic_11.woff2
+var fontData []byte
+
 // ── snapshot cache ──
 
 type NetIface struct {
@@ -173,6 +176,12 @@ func serveDashboard(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	w.Header().Set("Cache-Control", "no-cache")
 	w.Write(dashboard)
+}
+
+func serveFont(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "font/woff2")
+	w.Header().Set("Cache-Control", "public, max-age=86400")
+	w.Write(fontData)
 }
 
 func handleCPU(w http.ResponseWriter, r *http.Request) {
@@ -360,6 +369,7 @@ func main() {
 	loadConfig()
 	go poll()
 	http.HandleFunc("/", serveDashboard)
+	http.HandleFunc("/font/Cubic_11.woff2", serveFont)
 	http.HandleFunc("/api/cpu", handleCPU)
 	http.HandleFunc("/api/mem", handleMem)
 	http.HandleFunc("/api/network", handleNet)

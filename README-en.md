@@ -95,6 +95,7 @@ Naming: `Ponitor_<version>_<os>_<arch>.<ext>`, e.g. `Ponitor_v0.3_windows_amd64.
 - >70% usage → yellow warning, >85% → red alert
 - Landscape rotates to a 2×2 grid layout, optimized for phone landscape mode
 - 4 switchable themes: Matrix Green, Amber, Cyber Blue, Classic Mono
+- Bundled [Cubic 11](https://github.com/ACh-K/Cubic-11) pixel font (SIL OFL 1.1, redistributed with the binary) — phones get the full pixel aesthetic with no font install needed
 
 ## Project Structure
 
@@ -104,6 +105,10 @@ monitor/
 ├── dashboard.html   # Frontend: terminal-style dashboard (embedded in binary)
 ├── hide_windows.go  # Windows: hide nvidia-smi console + open browser
 ├── hide_other.go    # Non-Windows: no-op stubs
+├── gpu_windows.go   # Windows: GPU collection (nvidia-smi or PDH+WMI)
+├── gpu_other.go     # Non-Windows: GPU stub
+├── Cubic_11.woff2   # Pixel font (SIL OFL 1.1, embedded in binary)
+├── OFL.txt          # Font open-source license
 ├── icon.ico         # Tray icon (embedded)
 ├── config.json      # Persisted settings (interval + theme)
 ├── go.mod / go.sum  # Go module dependencies

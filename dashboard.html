@@ -5,6 +5,12 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>TTY1 - System Monitor</title>
 <style>
+  @font-face {
+    font-family: 'Cubic 11';
+    src: url('/font/Cubic_11.woff2') format('woff2');
+    font-display: swap;
+  }
+
   :root {
     --term-bg: #0c0d0e;
     --term-green: #00ff66;
@@ -12,7 +18,7 @@
     --term-warn: #ffaa00;
     --term-crit: #ff3333;
     --term-gray: #556655;
-    --font-cli: 'ZPix', 'Fira Code', 'VT323', 'Consolas', monospace;
+    --font-cli: 'Cubic 11', 'Fira Code', 'VT323', 'Consolas', monospace;
   }
 
   /* 主题：通过 body[data-theme] 切换 */

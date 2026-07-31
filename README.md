@@ -95,6 +95,7 @@ git push origin v0.3
 - 使用率 >70% 黄色预警，>85% 红色告警
 - 横屏自动切换 2×2 网格布局，适配手机横屏
 - 4 种可切换主题：黑绿 Matrix、琥珀金 Amber、赛博蓝 Cyber Blue、黑白 Classic Mono
+- 内置 [Cubic 11](https://github.com/ACh-K/Cubic-11) 像素字体（SIL OFL 1.1 开源许可，随二进制分发），手机无需安装字体即可获得完整像素风显示
 
 ## 项目结构
 
@@ -104,6 +105,10 @@ monitor/
 ├── dashboard.html   # 前端：终端风格仪表盘（嵌入二进制）
 ├── hide_windows.go  # Windows：隐藏 nvidia-smi 控制台 + 打开浏览器
 ├── hide_other.go    # 非 Windows：空实现
+├── gpu_windows.go   # Windows：GPU 采集（N 卡 nvidia-smi，其他 PDH+WMI）
+├── gpu_other.go     # 非 Windows：GPU stub
+├── Cubic_11.woff2   # 像素字体（SIL OFL 1.1，嵌入二进制）
+├── OFL.txt          # 字体开源许可证
 ├── icon.ico         # 托盘图标（嵌入）
 ├── config.json      # 持久化设置（间隔 + 主题）
 ├── go.mod / go.sum  # Go 模块依赖
