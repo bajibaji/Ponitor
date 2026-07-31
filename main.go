@@ -86,11 +86,14 @@ var (
 	prevNet   map[string]net.IOCountersStat
 	prevTime  time.Time
 	cores     int
+	gpuSkip   bool // 没有 NVIDIA GPU 时跳过 nvidia-smi fork
 )
 
 func poll() {
 	cores, _ = cpu.Counts(true)
-	cpu.Percent(0, false) // prime：下次调用返回距本次的用量
+	cpu.Percent(0, false)                 // prime
+	time.Sleep(100 * time.Millisecond)     // 计数器稳定
+	cpu.Percent(0, false)                 // 重置基线，后续读数窗口一致
 
 	for {
 		mu.RLock()
@@ -148,29 +151,32 @@ func poll() {
 		}
 		prevTime = now
 
-		// GPU
-		cmd := exec.Command("nvidia-smi",
-			"--query-gpu=utilization.gpu,memory.used,memory.total,temperature.gpu,name",
-			"--format=csv,noheader,nounits",
-		)
-		hideWindow(cmd)
-		out, err := cmd.Output()
-		if err == nil && len(out) > 0 {
-			p := strings.Split(strings.TrimSpace(string(out)), ",")
-			if len(p) >= 4 {
-				u, _ := strconv.ParseFloat(strings.TrimSpace(p[0]), 64)
-				muUsed, _ := strconv.Atoi(strings.TrimSpace(p[1]))
-				muTotal, _ := strconv.Atoi(strings.TrimSpace(p[2]))
-				t, _ := strconv.ParseFloat(strings.TrimSpace(p[3]), 64)
+		// GPU —— 失败一次即跳过，避免每轮无效 fork
+		if !gpuSkip {
+			cmd := exec.Command("nvidia-smi",
+				"--query-gpu=utilization.gpu,memory.used,memory.total,temperature.gpu,name",
+				"--format=csv,noheader,nounits",
+			)
+			hideWindow(cmd)
+			out, err := cmd.Output()
+			if err == nil && len(out) > 0 {
+				p := strings.Split(strings.TrimSpace(string(out)), ",")
+				if len(p) >= 4 {
+					u, _ := strconv.ParseFloat(strings.TrimSpace(p[0]), 64)
+					muUsed, _ := strconv.Atoi(strings.TrimSpace(p[1]))
+					muTotal, _ := strconv.Atoi(strings.TrimSpace(p[2]))
+					t, _ := strconv.ParseFloat(strings.TrimSpace(p[3]), 64)
+					mu.Lock()
+					gpuCached = &GPUInfo{u, muUsed, muTotal, t, strings.TrimSpace(p[4])}
+					gpuOK = true
+					mu.Unlock()
+				}
+			} else {
 				mu.Lock()
-				gpuCached = &GPUInfo{u, muUsed, muTotal, t, strings.TrimSpace(p[4])}
-				gpuOK = true
+				gpuOK = false
+				gpuSkip = true // 没有 GPU，后续不再重试
 				mu.Unlock()
 			}
-		} else {
-			mu.Lock()
-			gpuOK = false
-			mu.Unlock()
 		}
 
 	}
@@ -239,8 +245,8 @@ func handleSetTheme(w http.ResponseWriter, r *http.Request) {
 	}
 	mu.Lock()
 	cfg.Theme = theme
-	saveConfig()
 	mu.Unlock()
+	saveConfig() // 放锁后写文件，避免持锁 I/O 阻塞读取
 	w.Write([]byte(`{"ok":true}`))
 }
 
@@ -253,8 +259,8 @@ func handleSetInterval(w http.ResponseWriter, r *http.Request) {
 	}
 	mu.Lock()
 	cfg.IntervalMs = iv
-	saveConfig()
 	mu.Unlock()
+	saveConfig()
 	w.Write([]byte(`{"ok":true}`))
 }
 
@@ -380,6 +386,14 @@ func main() {
 	http.HandleFunc("/api/config", handleConfig)
 	http.HandleFunc("/api/theme", handleSetTheme)
 	http.HandleFunc("/api/interval", handleSetInterval)
-	go http.ListenAndServe("0.0.0.0:8080", nil)
+	go func() {
+		srv := &http.Server{
+			Addr:         "0.0.0.0:8080",
+			ReadTimeout:  5 * time.Second,
+			WriteTimeout: 10 * time.Second,
+			IdleTimeout:  120 * time.Second,
+		}
+		_ = srv.ListenAndServe()
+	}()
 	systray.Run(onReady, onExit)
 }
