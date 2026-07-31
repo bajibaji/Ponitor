@@ -3,6 +3,8 @@ package main
 import (
 	_ "embed"
 	"encoding/json"
+	"fmt"
+	"html"
 	"net/http"
 	"os"
 	"strconv"
@@ -59,6 +61,7 @@ type Config struct {
 	IntervalMs int    `json:"interval_ms"` // 采集间隔（毫秒）
 	Theme      string `json:"theme"`       // 主题名
 	CardHeight int    `json:"card_height"` // 卡片高度（px）
+	UserName   string `json:"user_name"`   // 仪表盘用户名（空=系统用户名）
 }
 
 var (
@@ -185,6 +188,19 @@ func serveFont(w http.ResponseWriter, r *http.Request) {
 	w.Write(fontData)
 }
 
+// serveSetName 用户名自定义页面（简单内联表单，无 JS）
+func serveSetName(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	fmt.Fprintf(w, `<!DOCTYPE html><html lang="zh"><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Ponitor - 自定义用户名</title><style>body{background:#0c0d0e;color:#00ff66;font-family:monospace;display:flex;align-items:center;justify-content:center;min-height:100dvh;margin:0}
+form{display:flex;flex-direction:column;gap:12px;width:280px}</style>
+<body><form method="GET" action="/api/username">
+<label>自定义用户名（留空恢复系统用户名）：</label>
+<input name="name" maxlength="32" placeholder="%s" autofocus style="padding:8px;background:#000;color:#00ff66;border:1px solid #006622;font-family:monospace">
+<button type="submit" style="padding:8px;background:#00ff66;color:#000;border:none;font-family:monospace;cursor:pointer">保存</button>
+</form></body></html>`, html.EscapeString(displayUserName()))
+}
+
 func handleCPU(w http.ResponseWriter, r *http.Request) {
 	mu.RLock()
 	d := cpuCached
@@ -269,6 +285,38 @@ func handleSetCardHeight(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(`{"ok":true}`))
 }
 
+func handleSetUserName(w http.ResponseWriter, r *http.Request) {
+	name := r.URL.Query().Get("name")
+	if len(name) > 32 {
+		http.Error(w, "name too long", 400)
+		return
+	}
+	mu.Lock()
+	cfg.UserName = name
+	mu.Unlock()
+	saveConfig()
+	w.Write([]byte(`{"ok":true}`))
+}
+
+// systemUserName 返回当前系统用户名（Windows: %USERNAME%），失败返回空
+func systemUserName() string {
+	if u := os.Getenv("USERNAME"); u != "" {
+		return u
+	}
+	return ""
+}
+
+// displayUserName 返回仪表盘显示的用户名：自定义优先，否则系统用户名
+func displayUserName() string {
+	mu.RLock()
+	un := cfg.UserName
+	mu.RUnlock()
+	if un != "" {
+		return un
+	}
+	return systemUserName()
+}
+
 // ── systray ──
 
 func onReady() {
@@ -294,13 +342,18 @@ func onReady() {
 	thBlue := mTheme.AddSubMenuItem("赛博蓝 Cyber Blue", "赛博蓝")
 	thMono := mTheme.AddSubMenuItem("黑白 Classic Mono", "黑白")
 
-	// 卡片高度子菜单（适配手机横竖屏，默认 180 / iPhone 7P 横屏反推 150 / 紧凑 110 / 迷你 70）
+	// 卡片高度子菜单（适配手机横竖屏：默认 180 / 紧凑 110 / 迷你 70 / ±10 微调）
 	mHeight := systray.AddMenuItem("卡片高度", "调整卡片高度适配不同屏幕")
-	ch150 := mHeight.AddSubMenuItem("7P 横屏 (150)", "iPhone 7P 横屏比例")
+	ch180 := mHeight.AddSubMenuItem("默认 (180)", "iPhone 7P 横屏比例")
 	ch110 := mHeight.AddSubMenuItem("紧凑 (110)", "小屏横屏")
 	ch70 := mHeight.AddSubMenuItem("迷你 (70)", "极致紧凑")
 	chHp := mHeight.AddSubMenuItem("+10", "卡片增高")
 	chHm := mHeight.AddSubMenuItem("-10", "卡片降低")
+
+	// 用户名子菜单
+	mUser := systray.AddMenuItem("用户名", "设置仪表盘显示的用户名")
+	uReset := mUser.AddSubMenuItem("恢复系统用户名", "清空自定义，显示电脑账户名")
+	uSet := mUser.AddSubMenuItem("自定义…", "打开设置页输入自定义用户名")
 
 	systray.AddSeparator()
 	mQuit := systray.AddMenuItem("退出", "退出 Ponitor")
@@ -315,7 +368,7 @@ func onReady() {
 		thAmber.Uncheck()
 		thBlue.Uncheck()
 		thMono.Uncheck()
-		ch150.Uncheck()
+		ch180.Uncheck()
 		ch110.Uncheck()
 		ch70.Uncheck()
 		mu.RLock()
@@ -340,8 +393,8 @@ func onReady() {
 			thMono.Check()
 		}
 		switch cfg.CardHeight {
-		case 150:
-			ch150.Check()
+		case 180:
+			ch180.Check()
 		case 110:
 			ch110.Check()
 		case 70:
@@ -394,8 +447,8 @@ func onReady() {
 				setTheme("blue", thBlue)
 			case <-thMono.ClickedCh:
 				setTheme("mono", thMono)
-			case <-ch150.ClickedCh:
-				setCardHeight(150)
+			case <-ch180.ClickedCh:
+				setCardHeight(180)
 			case <-ch110.ClickedCh:
 				setCardHeight(110)
 			case <-ch70.ClickedCh:
@@ -410,6 +463,13 @@ func onReady() {
 				h := cfg.CardHeight - 10
 				mu.RUnlock()
 				setCardHeight(h)
+			case <-uReset.ClickedCh:
+				mu.Lock()
+				cfg.UserName = ""
+				mu.Unlock()
+				saveConfig()
+			case <-uSet.ClickedCh:
+				openBrowser("http://" + lanIP() + ":8080/setname")
 			case <-mQuit.ClickedCh:
 				systray.Quit()
 				return
@@ -427,6 +487,7 @@ func main() {
 	go poll()
 	http.HandleFunc("/", serveDashboard)
 	http.HandleFunc("/font/Cubic_11.woff2", serveFont)
+	http.HandleFunc("/setname", serveSetName)
 	http.HandleFunc("/api/cpu", handleCPU)
 	http.HandleFunc("/api/mem", handleMem)
 	http.HandleFunc("/api/network", handleNet)
@@ -435,6 +496,7 @@ func main() {
 	http.HandleFunc("/api/theme", handleSetTheme)
 	http.HandleFunc("/api/interval", handleSetInterval)
 	http.HandleFunc("/api/cardheight", handleSetCardHeight)
+	http.HandleFunc("/api/username", handleSetUserName)
 	go func() {
 		srv := &http.Server{
 			Addr:         "0.0.0.0:8080",

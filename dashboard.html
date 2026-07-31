@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-<title>TTY1 - System Monitor</title>
+<title>Ponitor - System Monitor</title>
 <style>
   @font-face {
     font-family: 'Cubic 11';
@@ -219,7 +219,7 @@
 
 <div class="wrapper">
   <div class="cli-header">
-    <div><span class="prompt">root@DanJuan:~#</span> monitor -v<span class="cursor"></span></div>
+    <div><span class="prompt">root@<span id="host-name">user</span>:~#</span> Ponitor -v<span class="cursor"></span></div>
     <div id="sys-clock">--:--:--</div>
   </div>
 
@@ -417,6 +417,9 @@ async function tick() {
     if (c.interval_ms > 0) refreshMs = c.interval_ms;
     document.body.dataset.theme = c.theme || 'green';
     if (c.card_height) document.documentElement.style.setProperty('--card-height', c.card_height + 'px');
+    if (c.user_name !== undefined) {
+      document.getElementById('host-name').textContent = c.user_name || 'user';
+    }
   } catch(e) {}
   setTimeout(tick, refreshMs);
 }

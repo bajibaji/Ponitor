@@ -1,5 +1,6 @@
 {
   "interval_ms": 1000,
   "theme": "green",
-  "card_height": 180
+  "card_height": 180,
+  "user_name": ""
 }
