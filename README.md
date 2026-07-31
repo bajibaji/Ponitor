@@ -64,7 +64,7 @@ git tag v0.4
 git push origin v0.4
 ```
 
-产物命名：`Ponitor_<版本>_windows_<架构>.exe`，如 `Ponitor_v0.4_windows_amd64.exe`。
+产物命名：`Ponitor_<版本>_windows_<架构>.exe`，如 `Ponitor_v0.4_windows_x64.exe`（x64 / arm 两种）。
 
 ## 监控项
 

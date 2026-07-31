@@ -64,7 +64,7 @@ git tag v0.4
 git push origin v0.4
 ```
 
-Naming: `Ponitor_<version>_windows_<arch>.exe`, e.g. `Ponitor_v0.4_windows_amd64.exe`.
+Naming: `Ponitor_<version>_windows_<arch>.exe`, e.g. `Ponitor_v0.4_windows_x64.exe` (x64 / arm).
 
 ## Metrics
 

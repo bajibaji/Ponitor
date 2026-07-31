@@ -15,7 +15,11 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        goarch: [amd64, arm64]
+        include:
+          - goarch: amd64
+            arch: x64
+          - goarch: arm64
+            arch: arm
 
     steps:
       - uses: actions/checkout@v4
@@ -40,13 +44,13 @@ jobs:
         run: |
           CGO_ENABLED=0 GOARCH=${{ matrix.goarch }} \
             go build -ldflags="-H=windowsgui -s -w" \
-            -o "Ponitor_${{ steps.version.outputs.value }}_windows_${{ matrix.goarch }}.exe" .
+            -o "Ponitor_${{ steps.version.outputs.value }}_windows_${{ matrix.arch }}.exe" .
         shell: bash
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: Ponitor-${{ steps.version.outputs.value }}-windows-${{ matrix.goarch }}
+          name: Ponitor-${{ steps.version.outputs.value }}-windows-${{ matrix.arch }}
           path: Ponitor_*.exe
           if-no-files-found: error
 
