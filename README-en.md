@@ -6,45 +6,33 @@
 
 A single-binary Go system monitor that replicates the look and feel of a vintage CRT terminal in your browser: scan lines, phosphor glow, character bloom — all there. Real-time CPU, memory, GPU, and network traffic. Runs silently in the system tray with a right-click menu for scan interval and theme switching.
 
-~14 MB RAM, <5 MB binary, CPU sits at **near zero** most of the time. No Go, Node, or any runtime to install. No app needed on the phone. Built to sit in the background and turn an old phone into a permanent dedicated performance monitor.
-
 **Turn your old phone into a dedicated performance monitor.** Run the binary on your PC, open the browser on an old phone over the same LAN — you get a real-time "second screen" showing CPU, memory, GPU, and network traffic.
 
 <p align="center"><img src="./screenshot.png" alt="screenshot"></p>
 
-## Performance Overhead
+## Features
 
-| Metric | Value |
-|--------|-------|
-| Binary size | <5 MB (compiled with `-ldflags="-s -w"`) |
-| Runtime memory | ~14 MB |
-| CPU overhead | **Near zero** (wakes every 2s to poll, deep sleeps the rest) |
-| Dependencies | **Zero** — no Go, Node, or any runtime needed |
-| Frontend | Static HTML — **no app install**, just a browser |
+- **Authentic pixel CRT terminal** — bundles the open-source [Cubic 11](https://github.com/ACh-K/Cubic-11) pixel font (SIL OFL 1.1), complete with scan lines, phosphor glow, and a blinking cursor. No font install needed on phones
+- **Every GPU vendor supported** — NVIDIA via `nvidia-smi` (utilization / VRAM / temperature), AMD / Intel via PDH performance counters + WMI (the same data source as Task Manager)
+- **Zero-dependency single binary** — no Go, Node, or runtime to install; double-click and run. The frontend is static HTML embedded right into the binary
+- **Near-invisible host footprint** — wakes every 2s to sample, deep-sleeps the rest; ~20 MB RAM, near-zero idle CPU
+- **Phone browser, zero install** — connect the phone to the same WiFi, open the page, and it becomes a dedicated monitor screen
+- **Tray menu live tuning** — scan interval (0.5s / 1s / 2s / 5s) and 4 themes (Matrix Green / Amber / Cyber Blue / Classic Mono) switch instantly; settings persist to `config.json`
+- **Auto alerts** — >70% usage turns yellow, >85% turns red
+- **Landscape adaptive** — rotates to a 2×2 grid layout on phone landscape, filling the whole screen
 
 ## Quick Start
 
-### 1. Build
+### 1. Download (recommended)
 
-```bash
-# Requires Go 1.26+ (Windows)
-go build -ldflags="-H=windowsgui -s -w" -o Ponitor_v0.3.exe .
-# Or double-click rebuild.bat — auto-names the output Ponitor_<version>.exe from the git tag
-```
+Grab the latest `Ponitor_<version>_windows_amd64.exe` (or arm64) from [Releases](https://github.com/bajibaji/Ponitor/releases) and double-click to run.
 
-### 2. Run
-
-```bash
-Ponitor_v0.3.exe
-# Or double-click start.bat — auto-picks the newest Ponitor_*.exe
-```
-
-### 3. Open on phone
+### 2. Open on phone
 
 - Connect the phone to the same WiFi
 - Open `http://<YOUR_PC_LAN_IP>:8080` in the browser
 
-`start.bat` launches the monitor silently in the background (no window). A system tray icon appears — right-click it for:
+A system tray icon appears — right-click it for:
 
 - **Open Webpage** — open the dashboard in the default browser
 - **Scan Interval** — 0.5s / 1s / 2s / 5s (applied live, no page reload)
@@ -53,49 +41,42 @@ Ponitor_v0.3.exe
 
 Settings persist to `config.json` and survive restarts.
 
-### Stop
+### 3. Stop
 
-- Close the terminal window
-- Or double-click `stop.bat`
+- Double-click `stop.bat`
+- Or pick **Quit** from the tray menu
 
-### Build for other platforms
+## Build from source
 
 ```bash
-# Linux
-GOOS=linux GOARCH=amd64 go build -ldflags="-s -w" -o Ponitor_v0.3_linux_amd64 .
-
-# macOS (Intel)
-GOOS=darwin GOARCH=amd64 go build -ldflags="-s -w" -o Ponitor_v0.3_darwin_amd64 .
-
-# macOS (Apple Silicon)
-GOOS=darwin GOARCH=arm64 go build -ldflags="-s -w" -o Ponitor_v0.3_darwin_arm64 .
+# Requires Go 1.26+ (Windows)
+go build -ldflags="-H=windowsgui -s -w" -o Ponitor_v0.3.exe .
+# Or double-click rebuild.bat — auto-names the output Ponitor_<version>.exe from the git tag
 ```
+
+Launch: `start.bat` auto-picks the newest `Ponitor_*.exe` and runs it silently in the background.
 
 ### Build via GitHub Actions
 
 Push a `v*` tag (or trigger manually) to build both Windows artifacts — amd64 + arm64 — and attach them to a Release:
 
 ```bash
-git tag v0.3
-git push origin v0.3
+git tag v0.4
+git push origin v0.4
 ```
 
-Naming: `Ponitor_<version>_windows_<arch>.exe`, e.g. `Ponitor_v0.3_windows_amd64.exe`.
+Naming: `Ponitor_<version>_windows_<arch>.exe`, e.g. `Ponitor_v0.4_windows_amd64.exe`.
 
 ## Metrics
 
-| Metric | Source |
-|--------|--------|
-| CPU usage | `gopsutil/cpu` |
-| Memory usage | `gopsutil/mem` |
-| GPU utilization / VRAM / temp | `nvidia-smi` |
+| Metric | NVIDIA | AMD / Intel |
+|--------|--------|-------------|
+| GPU utilization | ✅ `nvidia-smi` | ✅ PDH counters (same source as Task Manager) |
+| GPU VRAM / temperature | ✅ | ❌ no reliable source (shows N/A) |
+| GPU name | ✅ | ✅ WMI |
+| CPU usage / cores | `gopsutil/cpu` |
+| Memory usage / percent | `gopsutil/mem` |
 | Network I/O rate | `gopsutil/net` |
-
-- Configurable poll interval (0.5s / 1s / 2s / 5s) via tray menu, applied live to both backend sampling and frontend refresh
-- >70% usage → yellow warning, >85% → red alert
-- Landscape rotates to a 2×2 grid layout, optimized for phone landscape mode
-- 4 switchable themes: Matrix Green, Amber, Cyber Blue, Classic Mono
-- Bundled [Cubic 11](https://github.com/ACh-K/Cubic-11) pixel font (SIL OFL 1.1, redistributed with the binary) — phones get the full pixel aesthetic with no font install needed
 
 ## Project Structure
 
@@ -126,4 +107,4 @@ monitor/
 - **Backend**: Go + [gopsutil/v4](https://github.com/shirou/gopsutil) + [getlantern/systray](https://github.com/getlantern/systray)
 - **Frontend**: Vanilla HTML/CSS/JS, zero dependencies, CRT terminal aesthetic
 - **API**: HTTP JSON — `/api/cpu` `/api/mem` `/api/gpu` `/api/network` `/api/config` `/api/theme` `/api/interval`
-- **Cross-platform**: Works on Linux / macOS too (GPU requires NVIDIA GPU + nvidia-smi)
+- **GPU**: NVIDIA `nvidia-smi` + Windows PDH performance counters + WMI

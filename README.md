@@ -6,45 +6,33 @@
 
 一个 Go 编写的单二进制系统监视器，在浏览器里模拟出老式 CRT 终端的显示效果 —— 扫描线、荧光余晖、字符辉光一应俱全，实时展示 CPU、内存、GPU 和网络流量。从系统托盘静默运行，右键菜单即可切换扫描间隔和主题。
 
-~14 MB 内存，<5 MB 二进制体积，大部分时间 CPU 占用**基本为零**。不需要装 Go、Node 或任何运行时，不需要在手机上装 App。适合长期挂在后台，把旧手机变成一块永远不关机的专属性能监视屏。
-
 **把旧手机变成 PC 的专属性能监视器。** 在 PC 上运行这个二进制文件，同一局域网内的旧手机打开浏览器 —— 多一块实时显示 CPU、内存、GPU、网络流量的"小屏幕"。
 
 <p align="center"><img src="./screenshot.png" alt="screenshot"></p>
 
-## 性能开销
+## 特点
 
-| 指标 | 数值 |
-|------|------|
-| 二进制体积 | <5 MB（`-ldflags="-s -w"` 编译） |
-| 运行时内存 | ~14 MB |
-| CPU 开销 | **几乎为零**（默认每 2 秒唤醒采集一次，其余时间深度休眠） |
-| 运行环境 | **零依赖** — 不装 Go、不装 Node、不装任何运行时 |
-| 前端 | 纯静态 HTML，**手机无需安装 App**，浏览器打开即用 |
+- **纯像素风 CRT 终端** —— 内置 [Cubic 11](https://github.com/ACh-K/Cubic-11) 开源像素字体（SIL OFL 1.1），扫描线、字符辉光、闪烁光标一应俱全，手机无需安装任何字体
+- **全系显卡支持** —— NVIDIA 走 `nvidia-smi`（利用率/显存/温度全量），AMD / Intel 走 PDH 性能计数器 + WMI（任务管理器同款数据源，利用率可用）
+- **零依赖单二进制** —— 不装 Go、不装 Node、不装任何运行时，双击即用；前端是纯静态 HTML 直接嵌入二进制
+- **对宿主性能近乎无感** —— 默认每 2 秒唤醒采集一次，其余时间深度休眠；实测内存 ~20 MB，空闲 CPU 占用基本为零
+- **手机浏览器即开即用** —— 无需安装 App，旧手机连上同一个 WiFi 打开网页就是一块专属性能监视屏
+- **托盘菜单即时调参** —— 扫描间隔（0.5s/1s/2s/5s）、4 种主题（黑绿 Matrix / 琥珀金 Amber / 赛博蓝 Cyber Blue / 黑白 Classic Mono）右键即切，设置持久化到 `config.json`
+- **自动告警** —— 使用率 >70% 黄色预警，>85% 红色告警
+- **横屏自适应** —— 手机横屏自动切换 2×2 网格布局，撑满整块屏幕
 
 ## 快速开始
 
-### 1. 编译
+### 1. 下载（推荐）
 
-```bash
-# 确保已安装 Go 1.26+（Windows）
-go build -ldflags="-H=windowsgui -s -w" -o Ponitor_v0.3.exe .
-# 或者直接双击 rebuild.bat（自动从 git tag 取版本号生成 Ponitor_<版本>.exe）
-```
+从 [Releases](https://github.com/bajibaji/Ponitor/releases) 下载最新的 `Ponitor_<版本>_windows_amd64.exe`（或 arm64 版），直接双击运行。
 
-### 2. 启动
-
-```bash
-Ponitor_v0.3.exe
-# 或者直接双击 start.bat（自动找到最新的 Ponitor_*.exe）
-```
-
-### 3. 在手机上打开
+### 2. 在手机上打开
 
 - 手机连同一个 WiFi
 - 浏览器访问 `http://你的PC内网IP:8080`
 
-`start.bat` 会在后台静默启动（无窗口），任务栏通知区出现托盘图标 —— 右键菜单（从上到下）：
+任务栏通知区出现托盘图标 —— 右键菜单（从上到下）：
 
 - **打开网页** —— 用默认浏览器打开仪表盘
 - **扫描间隔** —— 0.5s / 1s / 2s / 5s（即时生效，无需刷新页面）
@@ -53,49 +41,42 @@ Ponitor_v0.3.exe
 
 设置持久化到 `config.json`，重启后保留。
 
-### 停止
+### 3. 停止
 
-- 关掉命令行窗口
-- 或双击 `stop.bat`
+- 双击 `stop.bat`
+- 或从托盘菜单选「退出」
 
-### 编译到其他平台
+## 手动编译
 
 ```bash
-# Linux
-GOOS=linux GOARCH=amd64 go build -ldflags="-s -w" -o Ponitor_v0.3_linux_amd64 .
-
-# macOS (Intel)
-GOOS=darwin GOARCH=amd64 go build -ldflags="-s -w" -o Ponitor_v0.3_darwin_amd64 .
-
-# macOS (Apple Silicon)
-GOOS=darwin GOARCH=arm64 go build -ldflags="-s -w" -o Ponitor_v0.3_darwin_arm64 .
+# 确保已安装 Go 1.26+（Windows）
+go build -ldflags="-H=windowsgui -s -w" -o Ponitor_v0.3.exe .
+# 或者直接双击 rebuild.bat（自动从 git tag 取版本号生成 Ponitor_<版本>.exe）
 ```
+
+启动：`start.bat` 会自动找到最新的 `Ponitor_*.exe` 静默后台启动。
 
 ### 通过 GitHub Actions 编译
 
 推送 `v*` 标签（或手动触发）即可自动编译 Windows amd64 + arm64 两个产物，并上传到 Release：
 
 ```bash
-git tag v0.3
-git push origin v0.3
+git tag v0.4
+git push origin v0.4
 ```
 
-产物命名：`Ponitor_<版本>_windows_<架构>.exe`，如 `Ponitor_v0.3_windows_amd64.exe`。
+产物命名：`Ponitor_<版本>_windows_<架构>.exe`，如 `Ponitor_v0.4_windows_amd64.exe`。
 
 ## 监控项
 
-| 指标 | 数据来源 |
-|------|----------|
-| CPU 使用率 | `gopsutil/cpu` |
-| 内存使用量/占比 | `gopsutil/mem` |
-| GPU 利用率/VRAM/温度 | `nvidia-smi` |
+| 指标 | NVIDIA | AMD / Intel |
+|------|--------|-------------|
+| GPU 利用率 | ✅ `nvidia-smi` | ✅ PDH 性能计数器（任务管理器同款） |
+| GPU 显存 / 温度 | ✅ | ❌ 无可靠来源（显示 N/A） |
+| 显卡名称 | ✅ | ✅ WMI |
+| CPU 使用率 / 核心数 | `gopsutil/cpu` |
+| 内存使用量 / 占比 | `gopsutil/mem` |
 | 网络收发速率 | `gopsutil/net` |
-
-- 扫描间隔可通过托盘菜单切换（0.5s / 1s / 2s / 5s），后端采样与前端刷新均即时生效
-- 使用率 >70% 黄色预警，>85% 红色告警
-- 横屏自动切换 2×2 网格布局，适配手机横屏
-- 4 种可切换主题：黑绿 Matrix、琥珀金 Amber、赛博蓝 Cyber Blue、黑白 Classic Mono
-- 内置 [Cubic 11](https://github.com/ACh-K/Cubic-11) 像素字体（SIL OFL 1.1 开源许可，随二进制分发），手机无需安装字体即可获得完整像素风显示
 
 ## 项目结构
 
@@ -126,4 +107,4 @@ monitor/
 - **后端**: Go + [gopsutil/v4](https://github.com/shirou/gopsutil) + [getlantern/systray](https://github.com/getlantern/systray)
 - **前端**: 纯 HTML/CSS/JS，零依赖，模拟 CRT 终端风格
 - **API**: HTTP JSON，`/api/cpu` `/api/mem` `/api/gpu` `/api/network` `/api/config` `/api/theme` `/api/interval`
-- **跨平台**: Linux / macOS 上也能编译运行（GPU 部分需 NVIDIA 显卡 + nvidia-smi）
+- **GPU**: NVIDIA `nvidia-smi` + Windows PDH 性能计数器 + WMI
