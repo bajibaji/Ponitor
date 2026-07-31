@@ -167,11 +167,13 @@
     display: block;
     overflow: hidden;
   }
-  .ascii-bar .slot { display: inline-block; width: 1em; background: color-mix(in srgb, currentColor 15%, transparent); height: 0.6em; vertical-align: middle; }
+  .ascii-bar .slot { display: inline-block; width: 1em; vertical-align: middle; }
+  .ascii-bar .slot.dots { letter-spacing: 0.11em; } /* 3 点拉满 1em，点距 ~1px 连续 */
   .ascii-bar .slot.filled {
     width: calc(1em + 1px);           /* 相邻色块各外扩 0.5px，消除亚像素缝 */
     margin-right: -1px;
     background: currentColor;          /* 跟随文字色，warn/crit 变色自动生效 */
+    height: 0.6em;
   }
 
   /* Colors */
@@ -305,9 +307,9 @@ const BAR_LEN = 20;
 
 function makeAsciiBar(pct) {
   const n = Math.round((BAR_LEN * Math.min(pct, 100)) / 100);
-  // 填充 = 亮色块，空槽 = 暗色块，均为背景色块 → 完全连续无缝隙
+  // 填充 = 亮色块（无缝），空槽 = 3 点 + letter-spacing 拉满 1em（点距 ~1px 连续）
   let s = '[';
-  for (let i = 0; i < BAR_LEN; i++) s += i < n ? '<span class="slot filled"></span>' : '<span class="slot"></span>';
+  for (let i = 0; i < BAR_LEN; i++) s += i < n ? '<span class="slot filled"></span>' : '<span class="slot dots">...</span>';
   return s + ']';
 }
 
