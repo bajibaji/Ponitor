@@ -5,9 +5,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"os"
-	"os/exec"
 	"strconv"
-	"strings"
 	"sync"
 	"time"
 
@@ -86,7 +84,6 @@ var (
 	prevNet   map[string]net.IOCountersStat
 	prevTime  time.Time
 	cores     int
-	gpuSkip   bool // 没有 NVIDIA GPU 时跳过 nvidia-smi fork
 )
 
 func poll() {
@@ -151,32 +148,16 @@ func poll() {
 		}
 		prevTime = now
 
-		// GPU —— 失败一次即跳过，避免每轮无效 fork
-		if !gpuSkip {
-			cmd := exec.Command("nvidia-smi",
-				"--query-gpu=utilization.gpu,memory.used,memory.total,temperature.gpu,name",
-				"--format=csv,noheader,nounits",
-			)
-			hideWindow(cmd)
-			out, err := cmd.Output()
-			if err == nil && len(out) > 0 {
-				p := strings.Split(strings.TrimSpace(string(out)), ",")
-				if len(p) >= 4 {
-					u, _ := strconv.ParseFloat(strings.TrimSpace(p[0]), 64)
-					muUsed, _ := strconv.Atoi(strings.TrimSpace(p[1]))
-					muTotal, _ := strconv.Atoi(strings.TrimSpace(p[2]))
-					t, _ := strconv.ParseFloat(strings.TrimSpace(p[3]), 64)
-					mu.Lock()
-					gpuCached = &GPUInfo{u, muUsed, muTotal, t, strings.TrimSpace(p[4])}
-					gpuOK = true
-					mu.Unlock()
-				}
-			} else {
-				mu.Lock()
-				gpuOK = false
-				gpuSkip = true // 没有 GPU，后续不再重试
-				mu.Unlock()
-			}
+		// GPU（N 卡 nvidia-smi，其他走 PDH+WMI；失败返回 nil）
+		if g := pollGPU(); g != nil {
+			mu.Lock()
+			gpuCached = g
+			gpuOK = true
+			mu.Unlock()
+		} else {
+			mu.Lock()
+			gpuOK = false
+			mu.Unlock()
 		}
 
 	}

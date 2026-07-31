@@ -363,8 +363,9 @@ async function update() {
     const gb = document.getElementById('gpu-box');
     if (gpu) {
       gb.style.display = '';
+      const nm = (gpu.name || '').replace('NVIDIA GeForce ','');
       document.getElementById('gpu-name').textContent =
-        'GPU (' + gpu.name.replace('NVIDIA GeForce ','') + '):';
+        'GPU (' + (nm.length > 24 ? nm.slice(0,21) + '...' : nm) + '):';
       const pct = parseFloat(gpu.utilization.toFixed(1));
       const el = document.getElementById('gpu-pct');
       el.textContent = pct + '%'; el.className = 'val ' + statusClass(pct);
@@ -372,10 +373,15 @@ async function update() {
       bar.textContent = makeAsciiBar(pct);
       bar.className = 'ascii-bar ' + statusClass(pct);
       document.getElementById('gpu-vram').textContent =
-        fmtMem(gpu.mem_used) + ' / ' + fmtMem(gpu.mem_total);
+        (gpu.mem_total > 0 ? fmtMem(gpu.mem_used) + ' / ' + fmtMem(gpu.mem_total) : 'N/A');
       const t = document.getElementById('gpu-temp');
-      t.textContent = gpu.temperature + '°C';
-      t.className = gpu.temperature > 80 ? 'crit' : gpu.temperature > 65 ? 'warn' : '';
+      if (gpu.temperature > 0) {
+        t.textContent = gpu.temperature + '°C';
+        t.className = gpu.temperature > 80 ? 'crit' : gpu.temperature > 65 ? 'warn' : '';
+      } else {
+        t.textContent = 'N/A';
+        t.className = '';
+      }
     } else {
       gb.style.display = 'none';
     }
