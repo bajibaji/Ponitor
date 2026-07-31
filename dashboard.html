@@ -167,6 +167,8 @@
     display: block;
     overflow: hidden;
   }
+  .ascii-bar .slot { display: inline-block; width: 1em; text-align: center; }
+  .ascii-bar .slot.filled { font-weight: 600; }
 
   /* Colors */
   .warn { color: var(--term-warn) !important; }
@@ -299,9 +301,11 @@ const BAR_LEN = 20;
 
 function makeAsciiBar(pct) {
   const n = Math.round((BAR_LEN * Math.min(pct, 100)) / 100);
-  // 填 = █（全角16px），空 = 全角空格（同为16px），任意填充率总宽恒定
+  // 每槽固定 1em 宽（与 █ 等宽），空槽显示 .. 居中；] 位置恒定的关键
   let s = '[';
-  for (let i = 0; i < BAR_LEN; i++) s += i < n ? '█' : '　';
+  for (let i = 0; i < BAR_LEN; i++) {
+    s += '<span class="slot' + (i < n ? ' filled' : '') + '">' + (i < n ? '█' : '..') + '</span>';
+  }
   return s + ']';
 }
 
@@ -352,7 +356,7 @@ async function update() {
       const el = document.getElementById('cpu-pct');
       el.textContent = pct + '%'; el.className = 'val ' + statusClass(pct);
       const bar = document.getElementById('cpu-bar');
-      bar.textContent = makeAsciiBar(pct);
+      bar.innerHTML = makeAsciiBar(pct);
       bar.className = 'ascii-bar ' + statusClass(pct);
       document.getElementById('cpu-cores').textContent = (cpu.cpucore||'--') + ' Cores';
     }
@@ -363,7 +367,7 @@ async function update() {
       const el = document.getElementById('mem-pct');
       el.textContent = pct + '%'; el.className = 'val ' + statusClass(pct);
       const bar = document.getElementById('mem-bar');
-      bar.textContent = makeAsciiBar(pct);
+      bar.innerHTML = makeAsciiBar(pct);
       bar.className = 'ascii-bar ' + statusClass(pct);
       document.getElementById('mem-detail').textContent =
         fmtSize(mem.used) + ' / ' + fmtSize(mem.total);
@@ -380,7 +384,7 @@ async function update() {
       const el = document.getElementById('gpu-pct');
       el.textContent = pct + '%'; el.className = 'val ' + statusClass(pct);
       const bar = document.getElementById('gpu-bar');
-      bar.textContent = makeAsciiBar(pct);
+      bar.innerHTML = makeAsciiBar(pct);
       bar.className = 'ascii-bar ' + statusClass(pct);
       document.getElementById('gpu-vram').textContent =
         (gpu.mem_total > 0 ? fmtMem(gpu.mem_used) + ' / ' + fmtMem(gpu.mem_total) : 'N/A');
