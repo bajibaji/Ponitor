@@ -17,7 +17,7 @@ A single-binary Go system monitor that replicates the look and feel of a vintage
 - **Zero-dependency single binary** — no Go, Node, or runtime to install; double-click and run. The frontend is static HTML embedded right into the binary
 - **Near-invisible host footprint** — wakes every 2s to sample, deep-sleeps the rest; ~20 MB RAM, near-zero idle CPU
 - **Phone browser, zero install** — connect the phone to the same WiFi, open the page, and it becomes a dedicated monitor screen
-- **Tray menu live tuning** — scan interval (0.5s / 1s / 2s / 5s) and 4 themes (Matrix Green / Amber / Cyber Blue / Classic Mono) switch instantly; settings persist to `config.json`
+- **Tray menu live tuning** — scan interval (0.5s / 1s / 2s / 5s), 4 themes, card height (for phone portrait/landscape), username, and language (auto / 中文 / English) switch instantly; settings persist to `config.json`
 - **Auto alerts** — >70% usage turns yellow, >85% turns red
 - **Landscape adaptive** — rotates to a 2×2 grid layout on phone landscape, filling the whole screen
 
@@ -25,18 +25,21 @@ A single-binary Go system monitor that replicates the look and feel of a vintage
 
 ### 1. Download (recommended)
 
-Grab the latest `Ponitor_<version>_windows_amd64.exe` (or arm64) from [Releases](https://github.com/bajibaji/Ponitor/releases) and double-click to run.
+Grab the latest `Ponitor_<version>_windows_x64.exe` (or `windows_arm`) from [Releases](https://github.com/bajibaji/Ponitor/releases) and double-click to run.
 
 ### 2. Open on phone
 
 - Connect the phone to the same WiFi
 - Open `http://<YOUR_PC_LAN_IP>:8080` in the browser
 
-A system tray icon appears — right-click it for:
+A system tray icon appears — right-click it for (menu language follows the system, switchable in the menu):
 
 - **Open Webpage** — open the dashboard in the default browser
 - **Scan Interval** — 0.5s / 1s / 2s / 5s (applied live, no page reload)
 - **Theme** — Matrix Green / Amber / Cyber Blue / Classic Mono (applied live)
+- **Card Height** — Default (180) / Compact (110) / Mini (70) / +10 / -10, fits phone portrait/landscape
+- **Username** — reset to system username / custom (opens a settings page; defaults to your PC account name)
+- **Language** — Auto (System) / 中文 / English, applies instantly
 - **Quit**
 
 Settings persist to `config.json` and survive restarts.
@@ -49,7 +52,7 @@ Pick **Quit** from the tray menu.
 
 ```bash
 # Requires Go 1.26+ (Windows)
-go build -ldflags="-H=windowsgui -s -w" -o Ponitor_v0.3.exe .
+go build -ldflags="-H=windowsgui -s -w" -o Ponitor_v0.4.1.exe .
 # Or double-click rebuild.bat — auto-names the output Ponitor_<version>.exe from the git tag
 ```
 
@@ -60,8 +63,8 @@ Launch: `start.bat` auto-picks the newest `Ponitor_*.exe` and runs it silently i
 Push a `v*` tag (or trigger manually) to build both Windows artifacts — amd64 + arm64 — and attach them to a Release:
 
 ```bash
-git tag v0.4
-git push origin v0.4
+git tag v0.4.1
+git push origin v0.4.1
 ```
 
 Naming: `Ponitor_<version>_windows_<arch>.exe`, e.g. `Ponitor_v0.4_windows_x64.exe` (x64 / arm).
@@ -104,5 +107,5 @@ monitor/
 
 - **Backend**: Go + [gopsutil/v4](https://github.com/shirou/gopsutil) + [getlantern/systray](https://github.com/getlantern/systray)
 - **Frontend**: Vanilla HTML/CSS/JS, zero dependencies, CRT terminal aesthetic
-- **API**: HTTP JSON — `/api/cpu` `/api/mem` `/api/gpu` `/api/network` `/api/config` `/api/theme` `/api/interval`
+- **API**: HTTP JSON — `/api/cpu` `/api/mem` `/api/gpu` `/api/network` `/api/config` `/api/theme` `/api/interval` `/api/cardheight` `/api/username`
 - **GPU**: NVIDIA `nvidia-smi` + Windows PDH performance counters + WMI

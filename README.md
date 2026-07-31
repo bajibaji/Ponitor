@@ -17,7 +17,7 @@
 - **零依赖单二进制** —— 不装 Go、不装 Node、不装任何运行时，双击即用；前端是纯静态 HTML 直接嵌入二进制
 - **对宿主性能近乎无感** —— 默认每 2 秒唤醒采集一次，其余时间深度休眠；实测内存 ~20 MB，空闲 CPU 占用基本为零
 - **手机浏览器即开即用** —— 无需安装 App，旧手机连上同一个 WiFi 打开网页就是一块专属性能监视屏
-- **托盘菜单即时调参** —— 扫描间隔（0.5s/1s/2s/5s）、4 种主题（黑绿 Matrix / 琥珀金 Amber / 赛博蓝 Cyber Blue / 黑白 Classic Mono）右键即切，设置持久化到 `config.json`
+- **托盘菜单即时调参** —— 扫描间隔（0.5s/1s/2s/5s）、4 种主题、卡片高度（适配手机横竖屏）、用户名、语言（自动跟随系统 / 中文 / English）右键即切，设置持久化到 `config.json`
 - **自动告警** —— 使用率 >70% 黄色预警，>85% 红色告警
 - **横屏自适应** —— 手机横屏自动切换 2×2 网格布局，撑满整块屏幕
 
@@ -25,18 +25,21 @@
 
 ### 1. 下载（推荐）
 
-从 [Releases](https://github.com/bajibaji/Ponitor/releases) 下载最新的 `Ponitor_<版本>_windows_amd64.exe`（或 arm64 版），直接双击运行。
+从 [Releases](https://github.com/bajibaji/Ponitor/releases) 下载最新的 `Ponitor_<版本>_windows_x64.exe`（或 `windows_arm` 版），直接双击运行。
 
 ### 2. 在手机上打开
 
 - 手机连同一个 WiFi
 - 浏览器访问 `http://你的PC内网IP:8080`
 
-任务栏通知区出现托盘图标 —— 右键菜单（从上到下）：
+任务栏通知区出现托盘图标 —— 右键菜单（从上到下，语言跟随系统或手动切换）：
 
 - **打开网页** —— 用默认浏览器打开仪表盘
-- **扫描间隔** —— 0.5s / 1s / 2s / 5s（即时生效，无需刷新页面）
+- **扫描间隔** —— 0.5 秒 / 1 秒 / 2 秒 / 5 秒（即时生效，无需刷新页面）
 - **主题** —— 黑绿 Matrix / 琥珀金 Amber / 赛博蓝 Cyber Blue / 黑白 Classic Mono（即时生效）
+- **卡片高度** —— 默认 (180) / 紧凑 (110) / 迷你 (70) / +10 / -10，适配手机横竖屏
+- **用户名** —— 恢复系统用户名 / 自定义（打开设置页输入，默认显示电脑账户名）
+- **语言** —— 自动（跟随系统）/ 中文 / English，切换即时生效
 - **退出**
 
 设置持久化到 `config.json`，重启后保留。
@@ -49,7 +52,7 @@
 
 ```bash
 # 确保已安装 Go 1.26+（Windows）
-go build -ldflags="-H=windowsgui -s -w" -o Ponitor_v0.3.exe .
+go build -ldflags="-H=windowsgui -s -w" -o Ponitor_v0.4.1.exe .
 # 或者直接双击 rebuild.bat（自动从 git tag 取版本号生成 Ponitor_<版本>.exe）
 ```
 
@@ -60,8 +63,8 @@ go build -ldflags="-H=windowsgui -s -w" -o Ponitor_v0.3.exe .
 推送 `v*` 标签（或手动触发）即可自动编译 Windows amd64 + arm64 两个产物，并上传到 Release：
 
 ```bash
-git tag v0.4
-git push origin v0.4
+git tag v0.4.1
+git push origin v0.4.1
 ```
 
 产物命名：`Ponitor_<版本>_windows_<架构>.exe`，如 `Ponitor_v0.4_windows_x64.exe`（x64 / arm 两种）。
@@ -104,5 +107,5 @@ monitor/
 
 - **后端**: Go + [gopsutil/v4](https://github.com/shirou/gopsutil) + [getlantern/systray](https://github.com/getlantern/systray)
 - **前端**: 纯 HTML/CSS/JS，零依赖，模拟 CRT 终端风格
-- **API**: HTTP JSON，`/api/cpu` `/api/mem` `/api/gpu` `/api/network` `/api/config` `/api/theme` `/api/interval`
+- **API**: HTTP JSON，`/api/cpu` `/api/mem` `/api/gpu` `/api/network` `/api/config` `/api/theme` `/api/interval` `/api/cardheight` `/api/username`
 - **GPU**: NVIDIA `nvidia-smi` + Windows PDH 性能计数器 + WMI
