@@ -325,38 +325,38 @@ func onReady() {
 	systray.SetTooltip("Ponitor - System Monitor")
 
 	// 打开网页（最上方）
-	mOpen := systray.AddMenuItem("打开网页", "在浏览器中打开仪表盘")
+	mOpen := systray.AddMenuItem("打开网页 / Open Web", "在浏览器中打开仪表盘")
 	systray.AddSeparator()
 
 	// 扫描间隔子菜单
-	mInterval := systray.AddMenuItem("扫描间隔", "采集间隔")
-	iv05 := mInterval.AddSubMenuItem("0.5s", "0.5 秒")
-	iv1 := mInterval.AddSubMenuItem("1s", "1 秒")
-	iv2 := mInterval.AddSubMenuItem("2s", "2 秒")
-	iv5 := mInterval.AddSubMenuItem("5s", "5 秒")
+	mInterval := systray.AddMenuItem("扫描间隔 / Interval", "采集间隔")
+	iv05 := mInterval.AddSubMenuItem("0.5 秒 / 0.5s", "0.5 秒")
+	iv1 := mInterval.AddSubMenuItem("1 秒 / 1s", "1 秒")
+	iv2 := mInterval.AddSubMenuItem("2 秒 / 2s", "2 秒")
+	iv5 := mInterval.AddSubMenuItem("5 秒 / 5s", "5 秒")
 
 	// 主题子菜单
-	mTheme := systray.AddMenuItem("主题", "切换配色")
+	mTheme := systray.AddMenuItem("主题 / Theme", "切换配色")
 	thGreen := mTheme.AddSubMenuItem("黑绿 Matrix", "荧光绿")
 	thAmber := mTheme.AddSubMenuItem("琥珀金 Amber", "琥珀金")
 	thBlue := mTheme.AddSubMenuItem("赛博蓝 Cyber Blue", "赛博蓝")
 	thMono := mTheme.AddSubMenuItem("黑白 Classic Mono", "黑白")
 
 	// 卡片高度子菜单（适配手机横竖屏：默认 180 / 紧凑 110 / 迷你 70 / ±10 微调）
-	mHeight := systray.AddMenuItem("卡片高度", "调整卡片高度适配不同屏幕")
-	ch180 := mHeight.AddSubMenuItem("默认 (180)", "iPhone 7P 横屏比例")
-	ch110 := mHeight.AddSubMenuItem("紧凑 (110)", "小屏横屏")
-	ch70 := mHeight.AddSubMenuItem("迷你 (70)", "极致紧凑")
+	mHeight := systray.AddMenuItem("卡片高度 / Card Height", "调整卡片高度适配不同屏幕")
+	ch180 := mHeight.AddSubMenuItem("默认 / Default (180)", "iPhone 7P 横屏比例")
+	ch110 := mHeight.AddSubMenuItem("紧凑 / Compact (110)", "小屏横屏")
+	ch70 := mHeight.AddSubMenuItem("迷你 / Mini (70)", "极致紧凑")
 	chHp := mHeight.AddSubMenuItem("+10", "卡片增高")
 	chHm := mHeight.AddSubMenuItem("-10", "卡片降低")
 
 	// 用户名子菜单
-	mUser := systray.AddMenuItem("用户名", "设置仪表盘显示的用户名")
-	uReset := mUser.AddSubMenuItem("恢复系统用户名", "清空自定义，显示电脑账户名")
-	uSet := mUser.AddSubMenuItem("自定义…", "打开设置页输入自定义用户名")
+	mUser := systray.AddMenuItem("用户名 / Username", "设置仪表盘显示的用户名")
+	uReset := mUser.AddSubMenuItem("恢复系统用户名 / Reset", "清空自定义，显示电脑账户名")
+	uSet := mUser.AddSubMenuItem("自定义… / Custom…", "打开设置页输入自定义用户名")
 
 	systray.AddSeparator()
-	mQuit := systray.AddMenuItem("退出", "退出 Ponitor")
+	mQuit := systray.AddMenuItem("退出 / Quit", "退出 Ponitor")
 
 	// 勾选当前项
 	refreshChecks := func() {
