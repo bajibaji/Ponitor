@@ -58,11 +58,12 @@ type MemData struct {
 type Config struct {
 	IntervalMs int    `json:"interval_ms"` // 采集间隔（毫秒）
 	Theme      string `json:"theme"`       // 主题名
+	CardHeight int    `json:"card_height"` // 卡片高度（px）
 }
 
 var (
 	cfgFile = "config.json"
-	cfg     = Config{IntervalMs: 2000, Theme: "green"}
+	cfg     = Config{IntervalMs: 2000, Theme: "green", CardHeight: 180}
 )
 
 func loadConfig() {
@@ -254,6 +255,20 @@ func handleSetInterval(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(`{"ok":true}`))
 }
 
+func handleSetCardHeight(w http.ResponseWriter, r *http.Request) {
+	s := r.URL.Query().Get("h")
+	h, err := strconv.Atoi(s)
+	if err != nil || h < 40 || h > 400 {
+		http.Error(w, "bad height", 400)
+		return
+	}
+	mu.Lock()
+	cfg.CardHeight = h
+	mu.Unlock()
+	saveConfig()
+	w.Write([]byte(`{"ok":true}`))
+}
+
 // ── systray ──
 
 func onReady() {
@@ -279,6 +294,14 @@ func onReady() {
 	thBlue := mTheme.AddSubMenuItem("赛博蓝 Cyber Blue", "赛博蓝")
 	thMono := mTheme.AddSubMenuItem("黑白 Classic Mono", "黑白")
 
+	// 卡片高度子菜单（适配手机横竖屏，默认 180 / iPhone 7P 横屏反推 150 / 紧凑 110 / 迷你 70）
+	mHeight := systray.AddMenuItem("卡片高度", "调整卡片高度适配不同屏幕")
+	ch150 := mHeight.AddSubMenuItem("7P 横屏 (150)", "iPhone 7P 横屏比例")
+	ch110 := mHeight.AddSubMenuItem("紧凑 (110)", "小屏横屏")
+	ch70 := mHeight.AddSubMenuItem("迷你 (70)", "极致紧凑")
+	chHp := mHeight.AddSubMenuItem("+10", "卡片增高")
+	chHm := mHeight.AddSubMenuItem("-10", "卡片降低")
+
 	systray.AddSeparator()
 	mQuit := systray.AddMenuItem("退出", "退出 Ponitor")
 
@@ -292,6 +315,9 @@ func onReady() {
 		thAmber.Uncheck()
 		thBlue.Uncheck()
 		thMono.Uncheck()
+		ch150.Uncheck()
+		ch110.Uncheck()
+		ch70.Uncheck()
 		mu.RLock()
 		switch cfg.IntervalMs {
 		case 500:
@@ -313,6 +339,14 @@ func onReady() {
 		case "mono":
 			thMono.Check()
 		}
+		switch cfg.CardHeight {
+		case 150:
+			ch150.Check()
+		case 110:
+			ch110.Check()
+		case 70:
+			ch70.Check()
+		}
 		mu.RUnlock()
 	}
 	refreshChecks()
@@ -327,6 +361,13 @@ func onReady() {
 	setTheme := func(name string, item *systray.MenuItem) {
 		mu.Lock()
 		cfg.Theme = name
+		saveConfig()
+		mu.Unlock()
+		refreshChecks()
+	}
+	setCardHeight := func(h int) {
+		mu.Lock()
+		cfg.CardHeight = h
 		saveConfig()
 		mu.Unlock()
 		refreshChecks()
@@ -353,6 +394,22 @@ func onReady() {
 				setTheme("blue", thBlue)
 			case <-thMono.ClickedCh:
 				setTheme("mono", thMono)
+			case <-ch150.ClickedCh:
+				setCardHeight(150)
+			case <-ch110.ClickedCh:
+				setCardHeight(110)
+			case <-ch70.ClickedCh:
+				setCardHeight(70)
+			case <-chHp.ClickedCh:
+				mu.RLock()
+				h := cfg.CardHeight + 10
+				mu.RUnlock()
+				setCardHeight(h)
+			case <-chHm.ClickedCh:
+				mu.RLock()
+				h := cfg.CardHeight - 10
+				mu.RUnlock()
+				setCardHeight(h)
 			case <-mQuit.ClickedCh:
 				systray.Quit()
 				return
@@ -377,6 +434,7 @@ func main() {
 	http.HandleFunc("/api/config", handleConfig)
 	http.HandleFunc("/api/theme", handleSetTheme)
 	http.HandleFunc("/api/interval", handleSetInterval)
+	http.HandleFunc("/api/cardheight", handleSetCardHeight)
 	go func() {
 		srv := &http.Server{
 			Addr:         "0.0.0.0:8080",
