@@ -168,7 +168,13 @@
     overflow: hidden;
   }
   .ascii-bar .slot { display: inline-block; width: 1em; text-align: center; }
-  .ascii-bar .slot.filled { font-weight: 600; }
+  .ascii-bar .slot.filled {
+    width: calc(1em + 1px);           /* 相邻色块各外扩 0.5px，吃掉字形内边距 */
+    margin-right: -1px;
+    background: currentColor;          /* 跟随文字色，warn/crit 变色自动生效 */
+    height: 0.6em;
+    vertical-align: middle;
+  }
 
   /* Colors */
   .warn { color: var(--term-warn) !important; }
@@ -301,11 +307,9 @@ const BAR_LEN = 20;
 
 function makeAsciiBar(pct) {
   const n = Math.round((BAR_LEN * Math.min(pct, 100)) / 100);
-  // 每槽固定 1em 宽（与 █ 等宽），空槽显示 .. 居中；] 位置恒定的关键
+  // 填 = 背景色块（无缝，字形自带内边距会导致 █ 之间有缝），空 = .. 居中
   let s = '[';
-  for (let i = 0; i < BAR_LEN; i++) {
-    s += '<span class="slot' + (i < n ? ' filled' : '') + '">' + (i < n ? '█' : '..') + '</span>';
-  }
+  for (let i = 0; i < BAR_LEN; i++) s += i < n ? '<span class="slot filled"></span>' : '<span class="slot">..</span>';
   return s + ']';
 }
 
