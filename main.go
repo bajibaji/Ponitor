@@ -204,6 +204,7 @@ form{display:flex;flex-direction:column;gap:12px;width:280px}</style>
 }
 
 func handleCPU(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
 	mu.RLock()
 	d := cpuCached
 	mu.RUnlock()
@@ -211,6 +212,7 @@ func handleCPU(w http.ResponseWriter, r *http.Request) {
 }
 
 func handleMem(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
 	mu.RLock()
 	d := memCached
 	mu.RUnlock()
@@ -218,6 +220,7 @@ func handleMem(w http.ResponseWriter, r *http.Request) {
 }
 
 func handleNet(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
 	mu.RLock()
 	d := netCached
 	mu.RUnlock()
@@ -228,6 +231,7 @@ func handleNet(w http.ResponseWriter, r *http.Request) {
 }
 
 func handleGPU(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
 	mu.RLock()
 	ok := gpuOK
 	d := gpuCached
@@ -241,12 +245,14 @@ func handleGPU(w http.ResponseWriter, r *http.Request) {
 }
 
 func handleConfig(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
 	mu.RLock()
 	json.NewEncoder(w).Encode(cfg)
 	mu.RUnlock()
 }
 
 func handleSetTheme(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
 	theme := r.URL.Query().Get("name")
 	if theme == "" {
 		http.Error(w, "missing name", 400)
@@ -260,6 +266,7 @@ func handleSetTheme(w http.ResponseWriter, r *http.Request) {
 }
 
 func handleSetInterval(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
 	s := r.URL.Query().Get("ms")
 	iv, err := strconv.Atoi(s)
 	if err != nil || iv <= 0 {
@@ -274,6 +281,7 @@ func handleSetInterval(w http.ResponseWriter, r *http.Request) {
 }
 
 func handleSetCardHeight(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
 	s := r.URL.Query().Get("h")
 	h, err := strconv.Atoi(s)
 	if err != nil || h < 40 || h > 400 {
@@ -297,7 +305,8 @@ func handleSetUserName(w http.ResponseWriter, r *http.Request) {
 	cfg.UserName = name
 	mu.Unlock()
 	saveConfig()
-	w.Write([]byte(`{"ok":true}`))
+	// 保存成功后重定向回首页，避免停留在纯文字成功页
+	http.Redirect(w, r, "/", http.StatusFound)
 }
 
 // systemUserName 返回当前系统用户名（Windows: %USERNAME%），失败返回空
