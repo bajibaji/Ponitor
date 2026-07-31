@@ -46,17 +46,17 @@
 
 ### 3. 停止
 
-从托盘菜单选「退出」即可。
+从托盘菜单选「退出」即可。若托盘不可见（如远程桌面），在任务管理器结束 `Ponitor.exe` 进程亦可。
 
 ## 手动编译
 
 ```bash
 # 确保已安装 Go 1.26+（Windows）
-go build -ldflags="-H=windowsgui -s -w" -o Ponitor_v0.4.1.exe .
+go build -ldflags="-H=windowsgui -s -w" -o Ponitor.exe .
 # 或者直接双击 rebuild.bat（自动从 git tag 取版本号生成 Ponitor_<版本>.exe）
 ```
 
-启动：`start.bat` 会自动找到最新的 `Ponitor_*.exe` 静默后台启动。
+启动：直接双击 `Ponitor_*.exe` 即可运行。
 
 ### 通过 GitHub Actions 编译
 
@@ -93,11 +93,10 @@ monitor/
 ├── Cubic_11.woff2   # 像素字体（SIL OFL 1.1，嵌入二进制）
 ├── OFL.txt          # 字体开源许可证
 ├── icon.ico         # 托盘图标（嵌入）
-├── config.json      # 持久化设置（间隔 + 主题）
+├── config.json      # 持久化设置（间隔 / 主题 / 卡片高度 / 用户名 / 语言）
 ├── go.mod / go.sum  # Go 模块依赖
 ├── .github/workflows/build.yml  # Windows CI 编译（tag v* 触发）
 ├── Ponitor_*.exe    # 编译产物（Ponitor_<版本>.exe）
-├── start.bat        # 启动
 ├── rebuild.bat      # 重新编译并启动
 ├── README.md        # 本文件
 └── README-en.md     # 英文版说明

@@ -46,17 +46,17 @@ Settings persist to `config.json` and survive restarts.
 
 ### 3. Stop
 
-Pick **Quit** from the tray menu.
+Pick **Quit** from the tray menu. If the tray is not visible (e.g. remote desktop), end the `Ponitor.exe` process from Task Manager.
 
 ## Build from source
 
 ```bash
 # Requires Go 1.26+ (Windows)
-go build -ldflags="-H=windowsgui -s -w" -o Ponitor_v0.4.1.exe .
+go build -ldflags="-H=windowsgui -s -w" -o Ponitor.exe .
 # Or double-click rebuild.bat — auto-names the output Ponitor_<version>.exe from the git tag
 ```
 
-Launch: `start.bat` auto-picks the newest `Ponitor_*.exe` and runs it silently in the background.
+Launch: just double-click `Ponitor_*.exe` to run.
 
 ### Build via GitHub Actions
 
@@ -93,11 +93,10 @@ monitor/
 ├── Cubic_11.woff2   # Pixel font (SIL OFL 1.1, embedded in binary)
 ├── OFL.txt          # Font open-source license
 ├── icon.ico         # Tray icon (embedded)
-├── config.json      # Persisted settings (interval + theme)
+├── config.json      # Persisted settings (interval / theme / card height / username / language)
 ├── go.mod / go.sum  # Go module dependencies
 ├── .github/workflows/build.yml  # Windows CI build (triggered by v* tags)
 ├── Ponitor_*.exe    # Compiled binaries (Ponitor_<version>.exe)
-├── start.bat        # Start (Windows)
 ├── rebuild.bat      # Rebuild + start (Windows)
 ├── README.md        # Chinese version
 └── README-en.md     # This file
