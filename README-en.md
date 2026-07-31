@@ -71,16 +71,16 @@ GOOS=darwin GOARCH=amd64 go build -ldflags="-s -w" -o Ponitor_v0.3_darwin_amd64 
 GOOS=darwin GOARCH=arm64 go build -ldflags="-s -w" -o Ponitor_v0.3_darwin_arm64 .
 ```
 
-### Build all platforms via GitHub Actions
+### Build via GitHub Actions
 
-Push a `v*` tag (or trigger manually) to build all 6 artifacts — Windows / Linux / macOS × amd64 / arm64 — and attach them to a Release:
+Push a `v*` tag (or trigger manually) to build both Windows artifacts — amd64 + arm64 — and attach them to a Release:
 
 ```bash
 git tag v0.3
 git push origin v0.3
 ```
 
-Naming: `Ponitor_<version>_<os>_<arch>.<ext>`, e.g. `Ponitor_v0.3_windows_amd64.exe`.
+Naming: `Ponitor_<version>_windows_<arch>.exe`, e.g. `Ponitor_v0.3_windows_amd64.exe`.
 
 ## Metrics
 
@@ -112,7 +112,7 @@ monitor/
 ├── icon.ico         # Tray icon (embedded)
 ├── config.json      # Persisted settings (interval + theme)
 ├── go.mod / go.sum  # Go module dependencies
-├── .github/workflows/build.yml  # Cross-platform CI build (triggered by v* tags)
+├── .github/workflows/build.yml  # Windows CI build (triggered by v* tags)
 ├── Ponitor_*.exe    # Compiled binaries (Ponitor_<version>.exe)
 ├── start.bat        # Start (Windows)
 ├── stop.bat         # Stop (Windows)

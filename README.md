@@ -71,16 +71,16 @@ GOOS=darwin GOARCH=amd64 go build -ldflags="-s -w" -o Ponitor_v0.3_darwin_amd64 
 GOOS=darwin GOARCH=arm64 go build -ldflags="-s -w" -o Ponitor_v0.3_darwin_arm64 .
 ```
 
-### 通过 GitHub Actions 编译全平台
+### 通过 GitHub Actions 编译
 
-推送 `v*` 标签（或手动触发）即可自动编译 Windows / Linux / macOS 的 amd64 + arm64 共 6 个产物，并上传到 Release：
+推送 `v*` 标签（或手动触发）即可自动编译 Windows amd64 + arm64 两个产物，并上传到 Release：
 
 ```bash
 git tag v0.3
 git push origin v0.3
 ```
 
-产物命名：`Ponitor_<版本>_<系统>_<架构>.<扩展名>`，如 `Ponitor_v0.3_windows_amd64.exe`。
+产物命名：`Ponitor_<版本>_windows_<架构>.exe`，如 `Ponitor_v0.3_windows_amd64.exe`。
 
 ## 监控项
 
@@ -112,7 +112,7 @@ monitor/
 ├── icon.ico         # 托盘图标（嵌入）
 ├── config.json      # 持久化设置（间隔 + 主题）
 ├── go.mod / go.sum  # Go 模块依赖
-├── .github/workflows/build.yml  # 全平台 CI 编译（tag v* 触发）
+├── .github/workflows/build.yml  # Windows CI 编译（tag v* 触发）
 ├── Ponitor_*.exe    # 编译产物（Ponitor_<版本>.exe）
 ├── start.bat        # 启动
 ├── stop.bat         # 停止
