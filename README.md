@@ -2,6 +2,11 @@
 
 > [English](./README-en.md)
 
+[![Build](https://github.com/bajibaji/Ponitor/actions/workflows/build.yml/badge.svg)](https://github.com/bajibaji/Ponitor/actions/workflows/build.yml)
+[![Release](https://img.shields.io/github/v/release/bajibaji/Ponitor)](https://github.com/bajibaji/Ponitor/releases)
+[![License](https://img.shields.io/github/license/bajibaji/Ponitor)](./LICENSE)
+[![Go](https://img.shields.io/badge/go-1.26+-00ADD8?logo=go&logoColor=white)](https://go.dev)
+
 **像素字体 CRT 终端风格的局域网性能监视器，把旧手机变成 PC 的专属监视副屏，对宿主机性能的影响几乎可以忽略不计。**
 
 一个 Go 编写的单二进制系统监视器，在浏览器里模拟出老式 CRT 终端的显示效果 —— 扫描线、荧光余晖、字符辉光一应俱全，实时展示 CPU、内存、GPU 和网络流量。从系统托盘静默运行，右键菜单即可切换扫描间隔和主题。
@@ -15,11 +20,19 @@
 - **纯像素风 CRT 终端** —— 内置 [Cubic 11](https://github.com/ACh-K/Cubic-11) 开源像素字体（SIL OFL 1.1），扫描线、字符辉光、闪烁光标一应俱全，手机无需安装任何字体
 - **全系显卡支持** —— NVIDIA 走 `nvidia-smi`（利用率/显存/温度全量），AMD / Intel 走 PDH 性能计数器 + WMI（任务管理器同款数据源，利用率可用）
 - **零依赖单二进制** —— 不装 Go、不装 Node、不装任何运行时，双击即用；前端是纯静态 HTML 直接嵌入二进制
-- **对宿主性能近乎无感** —— 默认每 2 秒唤醒采集一次，其余时间深度休眠；实测内存 ~20 MB，空闲 CPU 占用基本为零
+- **对宿主性能近乎无感** —— 常驻内存 ~20 MB，空闲时 CPU 占用基本为零；默认每 2 秒唤醒采集一次，其余时间深度休眠，对宿主机日常使用毫无感知
 - **手机浏览器即开即用** —— 无需安装 App，旧手机连上同一个 WiFi 打开网页就是一块专属性能监视屏
 - **托盘菜单即时调参** —— 扫描间隔（0.5s/1s/2s/5s）、4 种主题、卡片高度（适配手机横竖屏）、用户名、语言（自动跟随系统 / 中文 / English）右键即切，设置持久化到 `config.json`
 - **自动告警** —— 使用率 >70% 黄色预警，>85% 红色告警
 - **横屏自适应** —— 手机横屏自动切换 2×2 网格布局，撑满整块屏幕
+
+### 性能占用
+
+| 指标 | 数值 |
+|------|------|
+| 常驻内存 | ~20 MB |
+| 空闲 CPU | 近零（每 2s 唤醒采集，其余深度休眠） |
+| 采集粒度 | 0.5s / 1s / 2s / 5s 可调 |
 
 ## 快速开始
 
@@ -63,8 +76,8 @@ go build -ldflags="-H=windowsgui -s -w" -o Ponitor.exe .
 推送 `v*` 标签（或手动触发）即可自动编译 Windows amd64 + arm64 两个产物，并上传到 Release：
 
 ```bash
-git tag v0.4.1
-git push origin v0.4.1
+git tag v0.4.3
+git push origin v0.4.3
 ```
 
 产物命名：`Ponitor_<版本>_windows_<架构>.exe`，如 `Ponitor_v0.4_windows_x64.exe`（x64 / arm 两种）。
@@ -83,7 +96,6 @@ git push origin v0.4.1
 ## 项目结构
 
 ```
-monitor/
 ├── main.go          # 后端：采集 + HTTP API + 托盘菜单
 ├── dashboard.html   # 前端：终端风格仪表盘（嵌入二进制）
 ├── hide_windows.go  # Windows：隐藏 nvidia-smi 控制台 + 打开浏览器
@@ -108,3 +120,7 @@ monitor/
 - **前端**: 纯 HTML/CSS/JS，零依赖，模拟 CRT 终端风格
 - **API**: HTTP JSON，`/api/cpu` `/api/mem` `/api/gpu` `/api/network` `/api/config` `/api/theme` `/api/interval` `/api/cardheight` `/api/username`
 - **GPU**: NVIDIA `nvidia-smi` + Windows PDH 性能计数器 + WMI
+
+## License
+
+本项目基于 [MIT License](./LICENSE) 开源。内置像素字体 [Cubic 11](https://github.com/ACh-K/Cubic-11) 采用 [SIL Open Font License 1.1](./OFL.txt)。

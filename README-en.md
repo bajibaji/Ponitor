@@ -2,7 +2,12 @@
 
 > [中文](./README.md)
 
-**A CRT terminal-style LAN system monitor — with near-zero impact on your host.**
+[![Build](https://github.com/bajibaji/Ponitor/actions/workflows/build.yml/badge.svg)](https://github.com/bajibaji/Ponitor/actions/workflows/build.yml)
+[![Release](https://img.shields.io/github/v/release/bajibaji/Ponitor)](https://github.com/bajibaji/Ponitor/releases)
+[![License](https://img.shields.io/github/license/bajibaji/Ponitor)](./LICENSE)
+[![Go](https://img.shields.io/badge/go-1.26+-00ADD8?logo=go&logoColor=white)](https://go.dev)
+
+**A pixel-font CRT terminal-style LAN system monitor that turns your old phone into a dedicated second-screen for your PC — with near-zero impact on your host.**
 
 A single-binary Go system monitor that replicates the look and feel of a vintage CRT terminal in your browser: scan lines, phosphor glow, character bloom — all there. Real-time CPU, memory, GPU, and network traffic. Runs silently in the system tray with a right-click menu for scan interval and theme switching.
 
@@ -15,11 +20,19 @@ A single-binary Go system monitor that replicates the look and feel of a vintage
 - **Authentic pixel CRT terminal** — bundles the open-source [Cubic 11](https://github.com/ACh-K/Cubic-11) pixel font (SIL OFL 1.1), complete with scan lines, phosphor glow, and a blinking cursor. No font install needed on phones
 - **Every GPU vendor supported** — NVIDIA via `nvidia-smi` (utilization / VRAM / temperature), AMD / Intel via PDH performance counters + WMI (the same data source as Task Manager)
 - **Zero-dependency single binary** — no Go, Node, or runtime to install; double-click and run. The frontend is static HTML embedded right into the binary
-- **Near-invisible host footprint** — wakes every 2s to sample, deep-sleeps the rest; ~20 MB RAM, near-zero idle CPU
+- **Near-invisible host footprint** — ~20 MB resident RAM, near-zero idle CPU; wakes every 2s to sample then deep-sleeps, completely unnoticeable in daily use
 - **Phone browser, zero install** — connect the phone to the same WiFi, open the page, and it becomes a dedicated monitor screen
 - **Tray menu live tuning** — scan interval (0.5s / 1s / 2s / 5s), 4 themes, card height (for phone portrait/landscape), username, and language (auto / 中文 / English) switch instantly; settings persist to `config.json`
 - **Auto alerts** — >70% usage turns yellow, >85% turns red
 - **Landscape adaptive** — rotates to a 2×2 grid layout on phone landscape, filling the whole screen
+
+### Performance footprint
+
+| Metric | Value |
+|--------|-------|
+| Resident RAM | ~20 MB |
+| Idle CPU | near-zero (wakes every 2s to sample, deep-sleeps otherwise) |
+| Sample interval | 0.5s / 1s / 2s / 5s adjustable |
 
 ## Quick Start
 
@@ -63,8 +76,8 @@ Launch: just double-click `Ponitor_*.exe` to run.
 Push a `v*` tag (or trigger manually) to build both Windows artifacts — amd64 + arm64 — and attach them to a Release:
 
 ```bash
-git tag v0.4.1
-git push origin v0.4.1
+git tag v0.4.3
+git push origin v0.4.3
 ```
 
 Naming: `Ponitor_<version>_windows_<arch>.exe`, e.g. `Ponitor_v0.4_windows_x64.exe` (x64 / arm).
@@ -83,7 +96,6 @@ Naming: `Ponitor_<version>_windows_<arch>.exe`, e.g. `Ponitor_v0.4_windows_x64.e
 ## Project Structure
 
 ```
-monitor/
 ├── main.go          # Backend: data collection + HTTP API + tray menu
 ├── dashboard.html   # Frontend: terminal-style dashboard (embedded in binary)
 ├── hide_windows.go  # Windows: hide nvidia-smi console + open browser
@@ -108,3 +120,7 @@ monitor/
 - **Frontend**: Vanilla HTML/CSS/JS, zero dependencies, CRT terminal aesthetic
 - **API**: HTTP JSON — `/api/cpu` `/api/mem` `/api/gpu` `/api/network` `/api/config` `/api/theme` `/api/interval` `/api/cardheight` `/api/username`
 - **GPU**: NVIDIA `nvidia-smi` + Windows PDH performance counters + WMI
+
+## License
+
+Released under the [MIT License](./LICENSE). The bundled pixel font [Cubic 11](https://github.com/ACh-K/Cubic-11) is licensed under the [SIL Open Font License 1.1](./OFL.txt).
