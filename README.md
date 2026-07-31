@@ -1,4 +1,4 @@
-# Ponitor
+# Ponitor - 像素控制台风格的局域网性能监视器
 
 > [English](./README-en.md)
 
