@@ -299,8 +299,10 @@ const BAR_LEN = 20;
 
 function makeAsciiBar(pct) {
   const n = Math.round((BAR_LEN * Math.min(pct, 100)) / 100);
-  // 用半角 # 而非全角 █，保证任意填充率下视觉宽度恒定
-  return '[' + '#'.repeat(n) + '.'.repeat(BAR_LEN - n) + ']';
+  // 每个槽位恒 2 字符宽：填 = █（2宽），空 = ..（2宽），总宽恒定
+  let s = '[';
+  for (let i = 0; i < BAR_LEN; i++) s += i < n ? '█' : '..';
+  return s + ']';
 }
 
 function statusClass(pct) {
