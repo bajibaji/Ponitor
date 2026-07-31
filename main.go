@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"os"
 	"strconv"
+	"strings"
 	"sync"
 	"time"
 
@@ -62,6 +63,7 @@ type Config struct {
 	Theme      string `json:"theme"`       // 主题名
 	CardHeight int    `json:"card_height"` // 卡片高度（px）
 	UserName   string `json:"user_name"`   // 仪表盘用户名（空=系统用户名）
+	Lang       string `json:"lang"`        // 语言：auto/zh/en（auto=跟随系统）
 }
 
 var (
@@ -306,6 +308,26 @@ func systemUserName() string {
 	return ""
 }
 
+// systemLang 返回系统语言（zh 或 en），Windows 用注册表 UI 语言
+func systemLang() string {
+	lang := strings.ToLower(os.Getenv("LANG"))
+	if strings.HasPrefix(lang, "zh") {
+		return "zh"
+	}
+	return "en"
+}
+
+// menuLang 返回菜单实际语言：config.lang 优先，auto 跟随系统
+func menuLang() string {
+	mu.RLock()
+	l := cfg.Lang
+	mu.RUnlock()
+	if l == "zh" || l == "en" {
+		return l
+	}
+	return systemLang()
+}
+
 // displayUserName 返回仪表盘显示的用户名：自定义优先，否则系统用户名
 func displayUserName() string {
 	mu.RLock()
@@ -319,44 +341,119 @@ func displayUserName() string {
 
 // ── systray ──
 
+var (
+	mOpen, mInterval, mTheme, mHeight, mUser, mLang, mQuit *systray.MenuItem
+	iv05, iv1, iv2, iv5                                   *systray.MenuItem
+	thGreen, thAmber, thBlue, thMono                      *systray.MenuItem
+	ch180, ch110, ch70, chHp, chHm                        *systray.MenuItem
+	uReset, uSet                                          *systray.MenuItem
+	langAuto, langZh, langEn                              *systray.MenuItem
+)
+
+// menuText 返回指定语言的菜单文案
+func menuText(lang string) map[string]string {
+	if lang == "zh" {
+		return map[string]string{
+			"open": "打开网页", "interval": "扫描间隔", "theme": "主题",
+			"height": "卡片高度", "user": "用户名", "lang": "语言", "quit": "退出",
+			"iv05": "0.5 秒", "iv1": "1 秒", "iv2": "2 秒", "iv5": "5 秒",
+			"thGreen": "黑绿 Matrix", "thAmber": "琥珀金 Amber",
+			"thBlue": "赛博蓝 Cyber Blue", "thMono": "黑白 Classic Mono",
+			"h180": "默认 (180)", "h110": "紧凑 (110)", "h70": "迷你 (70)",
+			"hp": "+10", "hm": "-10",
+			"uReset": "恢复系统用户名", "uSet": "自定义…",
+			"langAuto": "自动（跟随系统）", "langZh": "中文", "langEn": "English",
+		}
+	}
+	return map[string]string{
+		"open": "Open Web", "interval": "Interval", "theme": "Theme",
+		"height": "Card Height", "user": "Username", "lang": "Language", "quit": "Quit",
+		"iv05": "0.5s", "iv1": "1s", "iv2": "2s", "iv5": "5s",
+		"thGreen": "Matrix Green", "thAmber": "Amber", "thBlue": "Cyber Blue",
+		"thMono": "Classic Mono",
+		"h180": "Default (180)", "h110": "Compact (110)", "h70": "Mini (70)",
+		"hp": "+10", "hm": "-10",
+		"uReset": "Reset Username", "uSet": "Custom…",
+		"langAuto": "Auto (System)", "langZh": "中文", "langEn": "English",
+	}
+}
+
+// applyMenuLang 按当前语言刷新所有菜单文案（SetTitle 动态更新）
+func applyMenuLang() {
+	t := menuText(menuLang())
+	mOpen.SetTitle(t["open"])
+	mInterval.SetTitle(t["interval"])
+	mTheme.SetTitle(t["theme"])
+	mHeight.SetTitle(t["height"])
+	mUser.SetTitle(t["user"])
+	mLang.SetTitle(t["lang"])
+	mQuit.SetTitle(t["quit"])
+	iv05.SetTitle(t["iv05"])
+	iv1.SetTitle(t["iv1"])
+	iv2.SetTitle(t["iv2"])
+	iv5.SetTitle(t["iv5"])
+	thGreen.SetTitle(t["thGreen"])
+	thAmber.SetTitle(t["thAmber"])
+	thBlue.SetTitle(t["thBlue"])
+	thMono.SetTitle(t["thMono"])
+	ch180.SetTitle(t["h180"])
+	ch110.SetTitle(t["h110"])
+	ch70.SetTitle(t["h70"])
+	chHp.SetTitle(t["hp"])
+	chHm.SetTitle(t["hm"])
+	uReset.SetTitle(t["uReset"])
+	uSet.SetTitle(t["uSet"])
+	langAuto.SetTitle(t["langAuto"])
+	langZh.SetTitle(t["langZh"])
+	langEn.SetTitle(t["langEn"])
+}
+
 func onReady() {
 	systray.SetIcon(iconData)
 	systray.SetTitle("Ponitor")
 	systray.SetTooltip("Ponitor - System Monitor")
 
 	// 打开网页（最上方）
-	mOpen := systray.AddMenuItem("打开网页 / Open Web", "在浏览器中打开仪表盘")
+	mOpen = systray.AddMenuItem("", "")
 	systray.AddSeparator()
 
 	// 扫描间隔子菜单
-	mInterval := systray.AddMenuItem("扫描间隔 / Interval", "采集间隔")
-	iv05 := mInterval.AddSubMenuItem("0.5 秒 / 0.5s", "0.5 秒")
-	iv1 := mInterval.AddSubMenuItem("1 秒 / 1s", "1 秒")
-	iv2 := mInterval.AddSubMenuItem("2 秒 / 2s", "2 秒")
-	iv5 := mInterval.AddSubMenuItem("5 秒 / 5s", "5 秒")
+	mInterval = systray.AddMenuItem("", "")
+	iv05 = mInterval.AddSubMenuItem("", "")
+	iv1 = mInterval.AddSubMenuItem("", "")
+	iv2 = mInterval.AddSubMenuItem("", "")
+	iv5 = mInterval.AddSubMenuItem("", "")
 
 	// 主题子菜单
-	mTheme := systray.AddMenuItem("主题 / Theme", "切换配色")
-	thGreen := mTheme.AddSubMenuItem("黑绿 Matrix", "荧光绿")
-	thAmber := mTheme.AddSubMenuItem("琥珀金 Amber", "琥珀金")
-	thBlue := mTheme.AddSubMenuItem("赛博蓝 Cyber Blue", "赛博蓝")
-	thMono := mTheme.AddSubMenuItem("黑白 Classic Mono", "黑白")
+	mTheme = systray.AddMenuItem("", "")
+	thGreen = mTheme.AddSubMenuItem("", "")
+	thAmber = mTheme.AddSubMenuItem("", "")
+	thBlue = mTheme.AddSubMenuItem("", "")
+	thMono = mTheme.AddSubMenuItem("", "")
 
-	// 卡片高度子菜单（适配手机横竖屏：默认 180 / 紧凑 110 / 迷你 70 / ±10 微调）
-	mHeight := systray.AddMenuItem("卡片高度 / Card Height", "调整卡片高度适配不同屏幕")
-	ch180 := mHeight.AddSubMenuItem("默认 / Default (180)", "iPhone 7P 横屏比例")
-	ch110 := mHeight.AddSubMenuItem("紧凑 / Compact (110)", "小屏横屏")
-	ch70 := mHeight.AddSubMenuItem("迷你 / Mini (70)", "极致紧凑")
-	chHp := mHeight.AddSubMenuItem("+10", "卡片增高")
-	chHm := mHeight.AddSubMenuItem("-10", "卡片降低")
+	// 卡片高度子菜单
+	mHeight = systray.AddMenuItem("", "")
+	ch180 = mHeight.AddSubMenuItem("", "")
+	ch110 = mHeight.AddSubMenuItem("", "")
+	ch70 = mHeight.AddSubMenuItem("", "")
+	chHp = mHeight.AddSubMenuItem("", "")
+	chHm = mHeight.AddSubMenuItem("", "")
 
 	// 用户名子菜单
-	mUser := systray.AddMenuItem("用户名 / Username", "设置仪表盘显示的用户名")
-	uReset := mUser.AddSubMenuItem("恢复系统用户名 / Reset", "清空自定义，显示电脑账户名")
-	uSet := mUser.AddSubMenuItem("自定义… / Custom…", "打开设置页输入自定义用户名")
+	mUser = systray.AddMenuItem("", "")
+	uReset = mUser.AddSubMenuItem("", "")
+	uSet = mUser.AddSubMenuItem("", "")
+
+	// 语言子菜单
+	mLang = systray.AddMenuItem("", "")
+	langAuto = mLang.AddSubMenuItem("", "")
+	langZh = mLang.AddSubMenuItem("", "")
+	langEn = mLang.AddSubMenuItem("", "")
 
 	systray.AddSeparator()
-	mQuit := systray.AddMenuItem("退出 / Quit", "退出 Ponitor")
+	mQuit = systray.AddMenuItem("", "")
+
+	applyMenuLang()
 
 	// 勾选当前项
 	refreshChecks := func() {
@@ -371,6 +468,9 @@ func onReady() {
 		ch180.Uncheck()
 		ch110.Uncheck()
 		ch70.Uncheck()
+		langAuto.Uncheck()
+		langZh.Uncheck()
+		langEn.Uncheck()
 		mu.RLock()
 		switch cfg.IntervalMs {
 		case 500:
@@ -400,18 +500,26 @@ func onReady() {
 		case 70:
 			ch70.Check()
 		}
+		switch cfg.Lang {
+		case "zh":
+			langZh.Check()
+		case "en":
+			langEn.Check()
+		default:
+			langAuto.Check()
+		}
 		mu.RUnlock()
 	}
 	refreshChecks()
 
-	setInterval := func(ms int, item *systray.MenuItem) {
+	setInterval := func(ms int) {
 		mu.Lock()
 		cfg.IntervalMs = ms
 		saveConfig()
 		mu.Unlock()
 		refreshChecks()
 	}
-	setTheme := func(name string, item *systray.MenuItem) {
+	setTheme := func(name string) {
 		mu.Lock()
 		cfg.Theme = name
 		saveConfig()
@@ -425,6 +533,14 @@ func onReady() {
 		mu.Unlock()
 		refreshChecks()
 	}
+	setLang := func(l string) {
+		mu.Lock()
+		cfg.Lang = l
+		saveConfig()
+		mu.Unlock()
+		refreshChecks()
+		applyMenuLang()
+	}
 
 	go func() {
 		for {
@@ -432,21 +548,21 @@ func onReady() {
 			case <-mOpen.ClickedCh:
 				openBrowser("http://" + lanIP() + ":8080")
 			case <-iv05.ClickedCh:
-				setInterval(500, iv05)
+				setInterval(500)
 			case <-iv1.ClickedCh:
-				setInterval(1000, iv1)
+				setInterval(1000)
 			case <-iv2.ClickedCh:
-				setInterval(2000, iv2)
+				setInterval(2000)
 			case <-iv5.ClickedCh:
-				setInterval(5000, iv5)
+				setInterval(5000)
 			case <-thGreen.ClickedCh:
-				setTheme("green", thGreen)
+				setTheme("green")
 			case <-thAmber.ClickedCh:
-				setTheme("amber", thAmber)
+				setTheme("amber")
 			case <-thBlue.ClickedCh:
-				setTheme("blue", thBlue)
+				setTheme("blue")
 			case <-thMono.ClickedCh:
-				setTheme("mono", thMono)
+				setTheme("mono")
 			case <-ch180.ClickedCh:
 				setCardHeight(180)
 			case <-ch110.ClickedCh:
@@ -470,6 +586,12 @@ func onReady() {
 				saveConfig()
 			case <-uSet.ClickedCh:
 				openBrowser("http://" + lanIP() + ":8080/setname")
+			case <-langAuto.ClickedCh:
+				setLang("")
+			case <-langZh.ClickedCh:
+				setLang("zh")
+			case <-langEn.ClickedCh:
+				setLang("en")
 			case <-mQuit.ClickedCh:
 				systray.Quit()
 				return
