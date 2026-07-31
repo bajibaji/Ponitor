@@ -299,7 +299,8 @@ const BAR_LEN = 20;
 
 function makeAsciiBar(pct) {
   const n = Math.round((BAR_LEN * Math.min(pct, 100)) / 100);
-  return '[' + '█'.repeat(n) + '.'.repeat(BAR_LEN - n) + ']';
+  // 用半角 # 而非全角 █，保证任意填充率下视觉宽度恒定
+  return '[' + '#'.repeat(n) + '.'.repeat(BAR_LEN - n) + ']';
 }
 
 function statusClass(pct) {
