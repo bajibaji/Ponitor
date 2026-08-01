@@ -17,11 +17,11 @@ A single-binary Go system monitor that replicates the look and feel of a vintage
 
 Landscape (iPhone 7 Plus):
 
-<p align="center"><img src="./screenshot.png" width="560" alt="landscape"></p>
+<p align="center"><img src="./screenshot.png" alt="landscape" style="width: 100%; max-width: 720px;"></p>
 
 Portrait (iPhone 13 Pro):
 
-<p align="center"><img src="./screenshot2.png" height="480" alt="portrait"></p>
+<p align="center"><img src="./screenshot2.png" alt="portrait" style="width: 100%; max-width: 500px;"></p>
 
 Old phone (iPhone 4 landscape):
 
