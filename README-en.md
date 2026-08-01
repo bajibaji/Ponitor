@@ -15,9 +15,13 @@ A single-binary Go system monitor that replicates the look and feel of a vintage
 
 **Screenshots:**
 
-| Landscape (iPhone 13 Pro) | Portrait |
-|---|---|
-| <img src="./screenshot.png" width="360" alt="landscape"> | <img src="./screenshot2.png" width="180" alt="portrait"> |
+| Landscape (iPhone 7 Plus) |
+|---|
+| <img src="./screenshot.png" width="360" alt="landscape"> |
+
+| Portrait (iPhone 13 Pro) |
+|---|
+| <img src="./screenshot2.png" width="180" alt="portrait"> |
 
 | Old phone (iPhone 4 landscape) |
 |---|

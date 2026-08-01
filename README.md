@@ -15,9 +15,13 @@
 
 **软件截图：**
 
-| 横屏（iPhone 13 Pro） | 竖屏 |
-|---|---|
-| <img src="./screenshot.png" width="360" alt="横屏"> | <img src="./screenshot2.png" width="180" alt="竖屏"> |
+| 横屏（iPhone 7 Plus） |
+|---|
+| <img src="./screenshot.png" width="360" alt="横屏"> |
+
+| 竖屏（iPhone 13 Pro） |
+|---|
+| <img src="./screenshot2.png" width="180" alt="竖屏"> |
 
 | 老手机（iPhone 4 横屏） |
 |---|
