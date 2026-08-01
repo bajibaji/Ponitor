@@ -1,3 +1,6 @@
 # 编译产物
 Ponitor*.exe
+*.syso
 graphify-out/*
+# 图标生成用的 ttf（由 woff2 临时转换，不提交）
+tools/makeicon/Cubic_11.ttf

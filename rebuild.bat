@@ -7,7 +7,7 @@ for /f "tokens=5" %%a in ('netstat -ano ^| findstr ":8080.*LISTENING"') do taskk
 timeout /t 1 /nobreak >nul
 
 echo Building...
-windres -i icon.rc -O coff -o icon_windows_amd64.syso 2>nul
+windres -i icon.rc -O coff -o icon.syso 2>nul
 
 for /f "delims=- tokens=1" %%v in ('git describe --tags 2^>nul') do set "VER=%%v"
 if not defined VER set "VER=v0.0"

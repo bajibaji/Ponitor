@@ -24,4 +24,6 @@ require (
 	github.com/power-devops/perfstat v0.0.0-20210106213030-5aafc221ea8c // indirect
 	github.com/tklauser/go-sysconf v0.3.15 // indirect
 	github.com/tklauser/numcpus v0.10.0 // indirect
+	golang.org/x/image v0.44.0 // indirect
+	golang.org/x/text v0.40.0 // indirect
 )

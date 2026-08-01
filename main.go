@@ -351,7 +351,7 @@ func displayUserName() string {
 // ── systray ──
 
 var (
-	mOpen, mInterval, mTheme, mHeight, mUser, mLang, mQuit *systray.MenuItem
+	mOpen, mInterval, mHeight, mTheme, mLang, mUser, mAutoStart, mQuit *systray.MenuItem
 	iv05, iv1, iv2, iv5                                   *systray.MenuItem
 	thGreen, thAmber, thBlue, thMono                      *systray.MenuItem
 	ch180, ch110, ch70, chHp, chHm                        *systray.MenuItem
@@ -363,26 +363,28 @@ var (
 func menuText(lang string) map[string]string {
 	if lang == "zh" {
 		return map[string]string{
-			"open": "打开网页", "interval": "扫描间隔", "theme": "主题",
-			"height": "卡片高度", "user": "用户名", "lang": "语言", "quit": "退出",
+			"open": "打开网页", "interval": "扫描间隔", "theme": "主题配色",
+			"height": "卡片高度", "user": "显示用户名", "lang": "界面语言",
+			"autoStart": "开机自启", "quit": "退出程序",
 			"iv05": "0.5 秒", "iv1": "1 秒", "iv2": "2 秒", "iv5": "5 秒",
 			"thGreen": "黑绿 Matrix", "thAmber": "琥珀金 Amber",
 			"thBlue": "赛博蓝 Cyber Blue", "thMono": "黑白 Classic Mono",
 			"h180": "默认 (180)", "h110": "紧凑 (110)", "h70": "迷你 (70)",
 			"hp": "+10", "hm": "-10",
-			"uReset": "恢复系统用户名", "uSet": "自定义…",
+			"uSet": "自定义用户名…", "uReset": "恢复系统用户名",
 			"langAuto": "自动（跟随系统）", "langZh": "中文", "langEn": "English",
 		}
 	}
 	return map[string]string{
 		"open": "Open Web", "interval": "Interval", "theme": "Theme",
-		"height": "Card Height", "user": "Username", "lang": "Language", "quit": "Quit",
+		"height": "Card Height", "user": "Username", "lang": "Language",
+		"autoStart": "Run at Startup", "quit": "Quit",
 		"iv05": "0.5s", "iv1": "1s", "iv2": "2s", "iv5": "5s",
 		"thGreen": "Matrix Green", "thAmber": "Amber", "thBlue": "Cyber Blue",
 		"thMono": "Classic Mono",
 		"h180": "Default (180)", "h110": "Compact (110)", "h70": "Mini (70)",
 		"hp": "+10", "hm": "-10",
-		"uReset": "Reset Username", "uSet": "Custom…",
+		"uSet": "Custom…", "uReset": "Reset Username",
 		"langAuto": "Auto (System)", "langZh": "中文", "langEn": "English",
 	}
 }
@@ -392,10 +394,11 @@ func applyMenuLang() {
 	t := menuText(menuLang())
 	mOpen.SetTitle(t["open"])
 	mInterval.SetTitle(t["interval"])
-	mTheme.SetTitle(t["theme"])
 	mHeight.SetTitle(t["height"])
-	mUser.SetTitle(t["user"])
+	mTheme.SetTitle(t["theme"])
 	mLang.SetTitle(t["lang"])
+	mUser.SetTitle(t["user"])
+	mAutoStart.SetTitle(t["autoStart"])
 	mQuit.SetTitle(t["quit"])
 	iv05.SetTitle(t["iv05"])
 	iv1.SetTitle(t["iv1"])
@@ -433,13 +436,6 @@ func onReady() {
 	iv2 = mInterval.AddSubMenuItem("", "")
 	iv5 = mInterval.AddSubMenuItem("", "")
 
-	// 主题子菜单
-	mTheme = systray.AddMenuItem("", "")
-	thGreen = mTheme.AddSubMenuItem("", "")
-	thAmber = mTheme.AddSubMenuItem("", "")
-	thBlue = mTheme.AddSubMenuItem("", "")
-	thMono = mTheme.AddSubMenuItem("", "")
-
 	// 卡片高度子菜单
 	mHeight = systray.AddMenuItem("", "")
 	ch180 = mHeight.AddSubMenuItem("", "")
@@ -448,16 +444,26 @@ func onReady() {
 	chHp = mHeight.AddSubMenuItem("", "")
 	chHm = mHeight.AddSubMenuItem("", "")
 
-	// 用户名子菜单
-	mUser = systray.AddMenuItem("", "")
-	uReset = mUser.AddSubMenuItem("", "")
-	uSet = mUser.AddSubMenuItem("", "")
+	// 主题子菜单
+	mTheme = systray.AddMenuItem("", "")
+	thGreen = mTheme.AddSubMenuItem("", "")
+	thAmber = mTheme.AddSubMenuItem("", "")
+	thBlue = mTheme.AddSubMenuItem("", "")
+	thMono = mTheme.AddSubMenuItem("", "")
 
 	// 语言子菜单
 	mLang = systray.AddMenuItem("", "")
 	langAuto = mLang.AddSubMenuItem("", "")
 	langZh = mLang.AddSubMenuItem("", "")
 	langEn = mLang.AddSubMenuItem("", "")
+
+	// 用户名子菜单（自定义为主操作，在前）
+	mUser = systray.AddMenuItem("", "")
+	uSet = mUser.AddSubMenuItem("", "")
+	uReset = mUser.AddSubMenuItem("", "")
+
+	// 开机自启动开关
+	mAutoStart = systray.AddMenuItem("", "")
 
 	systray.AddSeparator()
 	mQuit = systray.AddMenuItem("", "")
@@ -480,6 +486,7 @@ func onReady() {
 		langAuto.Uncheck()
 		langZh.Uncheck()
 		langEn.Uncheck()
+		mAutoStart.Uncheck()
 		mu.RLock()
 		switch cfg.IntervalMs {
 		case 500:
@@ -518,6 +525,9 @@ func onReady() {
 			langAuto.Check()
 		}
 		mu.RUnlock()
+		if autoStartEnabled() {
+			mAutoStart.Check()
+		}
 	}
 	refreshChecks()
 
@@ -601,6 +611,14 @@ func onReady() {
 				setLang("zh")
 			case <-langEn.ClickedCh:
 				setLang("en")
+			case <-mAutoStart.ClickedCh:
+				if autoStartEnabled() {
+					setAutoStart(false)
+					mAutoStart.Uncheck()
+				} else {
+					setAutoStart(true)
+					mAutoStart.Check()
+				}
 			case <-mQuit.ClickedCh:
 				systray.Quit()
 				return

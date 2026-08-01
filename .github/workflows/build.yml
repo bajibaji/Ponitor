@@ -38,7 +38,7 @@ jobs:
         shell: bash
 
       - name: Build icon
-        run: windres -i icon.rc -O coff -o icon_windows_amd64.syso
+        run: windres -i icon.rc -O coff -o icon.syso
 
       - name: Build
         run: |
