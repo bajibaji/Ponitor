@@ -19,10 +19,6 @@ Landscape (iPhone 7 Plus):
 
 <p align="center"><img src="./screenshot.png" alt="landscape" style="width: 100%; max-width: 720px;"></p>
 
-Portrait (iPhone 13 Pro):
-
-<p align="center"><img src="./screenshot2.png" alt="portrait" style="width: 100%; max-width: 500px;"></p>
-
 Old phone (iPhone 4 landscape):
 
 <p align="center"><img src="./screenshot3.png" alt="iPhone 4 landscape"></p>

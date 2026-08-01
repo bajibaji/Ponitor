@@ -19,10 +19,6 @@
 
 <p align="center"><img src="./screenshot.png" alt="横屏" style="width: 100%; max-width: 720px;"></p>
 
-竖屏（iPhone 13 Pro）：
-
-<p align="center"><img src="./screenshot2.png" alt="竖屏" style="width: 100%; max-width: 500px;"></p>
-
 老手机（iPhone 4 横屏）：
 
 <p align="center"><img src="./screenshot3.png" alt="iPhone 4 横屏"></p>
