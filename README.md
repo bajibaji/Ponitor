@@ -17,11 +17,11 @@
 
 横屏（iPhone 7 Plus）：
 
-<p align="center"><img src="./screenshot.png" width="360" alt="横屏"></p>
+<p align="center"><img src="./screenshot.png" width="560" alt="横屏"></p>
 
 竖屏（iPhone 13 Pro）：
 
-<p align="center"><img src="./screenshot2.png" width="180" alt="竖屏"></p>
+<p align="center"><img src="./screenshot2.png" height="480" alt="竖屏"></p>
 
 老手机（iPhone 4 横屏）：
 
