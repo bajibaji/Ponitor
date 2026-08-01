@@ -15,17 +15,17 @@ A single-binary Go system monitor that replicates the look and feel of a vintage
 
 **Screenshots:**
 
-| Landscape (iPhone 7 Plus) |
-|---|
-| <img src="./screenshot.png" width="360" alt="landscape"> |
+Landscape (iPhone 7 Plus):
 
-| Portrait (iPhone 13 Pro) |
-|---|
-| <img src="./screenshot2.png" width="180" alt="portrait"> |
+<p align="center"><img src="./screenshot.png" width="360" alt="landscape"></p>
 
-| Old phone (iPhone 4 landscape) |
-|---|
-| <img src="./screenshot3.png" alt="iPhone 4 landscape"> |
+Portrait (iPhone 13 Pro):
+
+<p align="center"><img src="./screenshot2.png" width="180" alt="portrait"></p>
+
+Old phone (iPhone 4 landscape):
+
+<p align="center"><img src="./screenshot3.png" alt="iPhone 4 landscape"></p>
 
 > Tip: On old phones the Safari address bar takes up some height — swipe up to hide it and the dashboard fills the whole screen automatically (adaptive card height, no manual tuning needed).
 
