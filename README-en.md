@@ -15,6 +15,18 @@ A single-binary Go system monitor that replicates the look and feel of a vintage
 
 <p align="center"><img src="./screenshot.png" alt="screenshot"></p>
 
+**Real-device screenshots:**
+
+| Landscape (iPhone 7P) | Portrait preview |
+|---|---|
+| <img src="./screenshot.png" width="360" alt="landscape"> | <img src="./screenshot2.png" width="180" alt="portrait"> |
+
+| Old phone (iPhone 4 landscape) |
+|---|
+| <img src="./screenshot3.png" alt="iPhone 4 landscape"> |
+
+> 💡 On old phones the Safari address bar takes up some height — **swipe up** to hide it and the dashboard fills the whole screen automatically (adaptive card height, no manual tuning needed).
+
 ## Features
 
 - **Authentic pixel CRT terminal** — bundles the open-source [Cubic 11](https://github.com/ACh-K/Cubic-11) pixel font (SIL OFL 1.1), complete with scan lines, phosphor glow, and a blinking cursor. No font install needed on phones
