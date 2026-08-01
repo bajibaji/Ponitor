@@ -15,11 +15,7 @@
 
 **软件截图：**
 
-<p align="center"><img src="./screenshot.png" alt="screenshot"></p>
-
-
-
-| 横屏（iPhone 7P） | 竖屏预览 |
+| 横屏（iPhone 13 Pro） | 竖屏 |
 |---|---|
 | <img src="./screenshot.png" width="360" alt="横屏"> | <img src="./screenshot2.png" width="180" alt="竖屏"> |
 
@@ -27,7 +23,7 @@
 |---|
 | <img src="./screenshot3.png" alt="iPhone 4 横屏"> |
 
-> 💡 老手机上 Safari 地址栏会占一部分高度 —— 手指**向上滑动**即可隐藏地址栏，仪表盘自动铺满整屏（卡片高度自适应，无需手动设置）。
+> 提示：老手机上 Safari 地址栏会占一部分高度——手指向上滑动即可隐藏地址栏，仪表盘自动铺满整屏（卡片高度自适应，无需手动设置）。
 
 ## 特点
 

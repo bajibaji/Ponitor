@@ -13,11 +13,9 @@ A single-binary Go system monitor that replicates the look and feel of a vintage
 
 **Turn your old phone into a dedicated performance monitor.** Run the binary on your PC, open the browser on an old phone over the same LAN — you get a real-time "second screen" showing CPU, memory, GPU, and network traffic.
 
-<p align="center"><img src="./screenshot.png" alt="screenshot"></p>
+**Screenshots:**
 
-**Real-device screenshots:**
-
-| Landscape (iPhone 7P) | Portrait preview |
+| Landscape (iPhone 13 Pro) | Portrait |
 |---|---|
 | <img src="./screenshot.png" width="360" alt="landscape"> | <img src="./screenshot2.png" width="180" alt="portrait"> |
 
@@ -25,7 +23,7 @@ A single-binary Go system monitor that replicates the look and feel of a vintage
 |---|
 | <img src="./screenshot3.png" alt="iPhone 4 landscape"> |
 
-> 💡 On old phones the Safari address bar takes up some height — **swipe up** to hide it and the dashboard fills the whole screen automatically (adaptive card height, no manual tuning needed).
+> Tip: On old phones the Safari address bar takes up some height — swipe up to hide it and the dashboard fills the whole screen automatically (adaptive card height, no manual tuning needed).
 
 ## Features
 
