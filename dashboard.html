@@ -307,13 +307,32 @@
 
 <script>
 const API = '/api';
-const BAR_LEN = 20;
+
+// 实测点宽与括号宽：探针挂进 .ascii-bar 内以继承 .bar-dots 的 letter-spacing，
+// 字体回退时也精确匹配实际渲染
+function barMetrics() {
+  const host = document.querySelector('.ascii-bar');
+  const probe = document.createElement('span');
+  probe.className = 'bar-dots';
+  probe.style.cssText = 'position:absolute;visibility:hidden;';
+  host.appendChild(probe);
+  probe.textContent = '..';
+  const dotW = probe.getBoundingClientRect().width / 2;
+  probe.textContent = '[]';
+  const bracketW = probe.getBoundingClientRect().width;
+  probe.remove();
+  return { dotW: dotW || 5.2, bracketW: bracketW || 26 };
+}
 
 function makeAsciiBar(pct) {
-  const n = Math.round((BAR_LEN * Math.min(pct, 100)) / 100);
-  // 底 = 连续点线（点距均匀），fill = 绝对定位色块盖住前 n/20；
+  // 点数随容器宽度动态生成（实测点宽/括号宽），任何屏幕恰好填满不溢出
+  const avail = document.querySelector('.ascii-bar-wrap')?.clientWidth || 300;
+  const { dotW, bracketW } = barMetrics();
+  const dots = Math.max(8, Math.floor((avail - bracketW) / dotW));
+  const n = Math.round((dots * Math.min(pct, 100)) / 100);
+  // 底 = 连续点线（点距均匀），fill = 绝对定位色块盖住前 n/dots；
   // 点永远整齐，] 位置恒定（track 宽度固定）
-  let s = '[<span class="bar-track"><span class="bar-fill" style="width:' + (n * 100 / BAR_LEN) + '%"></span><span class="bar-dots">' + '.'.repeat(BAR_LEN * 2) + '</span></span>]';
+  let s = '[<span class="bar-track"><span class="bar-fill" style="width:' + (n * 100 / dots) + '%"></span><span class="bar-dots">' + '.'.repeat(dots) + '</span></span>]';
   return s;
 }
 
@@ -423,6 +442,17 @@ async function update() {
   } catch(e) { console.error(e); }
 }
 
+// 自适应卡片高度：一屏放下（横屏 2×2 固定开销 54px，竖屏 1 列 92.6px）
+let cardHeightAuto = false;
+function computeAutoHeight() {
+  const vh = window.innerHeight;
+  const landscape = window.matchMedia('(orientation: landscape)').matches;
+  const h = landscape ? (vh - 54) / 2 : (vh - 92.6) / 4;
+  document.documentElement.style.setProperty('--card-height', Math.max(40, Math.floor(h)) + 'px');
+}
+window.addEventListener('resize', () => { if (cardHeightAuto) computeAutoHeight(); });
+window.addEventListener('orientationchange', () => { if (cardHeightAuto) setTimeout(computeAutoHeight, 200); });
+
 // 自调度循环：每轮重读配置，托盘菜单改间隔/主题即时生效
 let refreshMs = 2000;
 async function tick() {
@@ -431,7 +461,11 @@ async function tick() {
     const c = await (await fetch(API + '/config')).json();
     if (c.interval_ms > 0) refreshMs = c.interval_ms;
     document.body.dataset.theme = c.theme || 'green';
-    if (c.card_height) document.documentElement.style.setProperty('--card-height', c.card_height + 'px');
+    if (c.card_height !== undefined) {
+      cardHeightAuto = c.card_height === 0;
+      if (cardHeightAuto) computeAutoHeight();
+      else document.documentElement.style.setProperty('--card-height', c.card_height + 'px');
+    }
     if (c.user_name !== undefined) {
       document.getElementById('host-name').textContent = c.user_name || 'user';
     }

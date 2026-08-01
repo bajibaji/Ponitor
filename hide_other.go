@@ -15,3 +15,6 @@ func openBrowser(url string) {
 		}
 	}
 }
+
+// ensureSingleInstance 非 Windows 平台不做单实例限制
+func ensureSingleInstance() bool { return false }

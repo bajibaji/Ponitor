@@ -284,7 +284,7 @@ func handleSetCardHeight(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	s := r.URL.Query().Get("h")
 	h, err := strconv.Atoi(s)
-	if err != nil || h < 40 || h > 400 {
+	if err != nil || h < 0 || h > 400 { // 0 = 自适应
 		http.Error(w, "bad height", 400)
 		return
 	}
@@ -354,7 +354,7 @@ var (
 	mOpen, mInterval, mHeight, mTheme, mLang, mUser, mAutoStart, mQuit *systray.MenuItem
 	iv05, iv1, iv2, iv5                                   *systray.MenuItem
 	thGreen, thAmber, thBlue, thMono                      *systray.MenuItem
-	ch180, ch110, ch70, chHp, chHm                        *systray.MenuItem
+	chAuto, ch180, ch110, ch70, chHp, chHm                *systray.MenuItem
 	uReset, uSet                                          *systray.MenuItem
 	langAuto, langZh, langEn                              *systray.MenuItem
 )
@@ -369,7 +369,7 @@ func menuText(lang string) map[string]string {
 			"iv05": "0.5 秒", "iv1": "1 秒", "iv2": "2 秒", "iv5": "5 秒",
 			"thGreen": "黑绿 Matrix", "thAmber": "琥珀金 Amber",
 			"thBlue": "赛博蓝 Cyber Blue", "thMono": "黑白 Classic Mono",
-			"h180": "默认 (180)", "h110": "紧凑 (110)", "h70": "迷你 (70)",
+			"hAuto": "自适应 (Auto)", "h180": "默认 (180)", "h110": "紧凑 (110)", "h70": "迷你 (70)",
 			"hp": "+10", "hm": "-10",
 			"uSet": "自定义用户名…", "uReset": "恢复系统用户名",
 			"langAuto": "自动（跟随系统）", "langZh": "中文", "langEn": "English",
@@ -382,7 +382,7 @@ func menuText(lang string) map[string]string {
 		"iv05": "0.5s", "iv1": "1s", "iv2": "2s", "iv5": "5s",
 		"thGreen": "Matrix Green", "thAmber": "Amber", "thBlue": "Cyber Blue",
 		"thMono": "Classic Mono",
-		"h180": "Default (180)", "h110": "Compact (110)", "h70": "Mini (70)",
+		"hAuto": "Auto (Adaptive)", "h180": "Default (180)", "h110": "Compact (110)", "h70": "Mini (70)",
 		"hp": "+10", "hm": "-10",
 		"uSet": "Custom…", "uReset": "Reset Username",
 		"langAuto": "Auto (System)", "langZh": "中文", "langEn": "English",
@@ -408,6 +408,7 @@ func applyMenuLang() {
 	thAmber.SetTitle(t["thAmber"])
 	thBlue.SetTitle(t["thBlue"])
 	thMono.SetTitle(t["thMono"])
+	chAuto.SetTitle(t["hAuto"])
 	ch180.SetTitle(t["h180"])
 	ch110.SetTitle(t["h110"])
 	ch70.SetTitle(t["h70"])
@@ -438,6 +439,7 @@ func onReady() {
 
 	// 卡片高度子菜单
 	mHeight = systray.AddMenuItem("", "")
+	chAuto = mHeight.AddSubMenuItem("", "")
 	ch180 = mHeight.AddSubMenuItem("", "")
 	ch110 = mHeight.AddSubMenuItem("", "")
 	ch70 = mHeight.AddSubMenuItem("", "")
@@ -480,6 +482,7 @@ func onReady() {
 		thAmber.Uncheck()
 		thBlue.Uncheck()
 		thMono.Uncheck()
+		chAuto.Uncheck()
 		ch180.Uncheck()
 		ch110.Uncheck()
 		ch70.Uncheck()
@@ -509,6 +512,8 @@ func onReady() {
 			thMono.Check()
 		}
 		switch cfg.CardHeight {
+		case 0:
+			chAuto.Check()
 		case 180:
 			ch180.Check()
 		case 110:
@@ -582,6 +587,8 @@ func onReady() {
 				setTheme("blue")
 			case <-thMono.ClickedCh:
 				setTheme("mono")
+			case <-chAuto.ClickedCh:
+				setCardHeight(0)
 			case <-ch180.ClickedCh:
 				setCardHeight(180)
 			case <-ch110.ClickedCh:
@@ -632,6 +639,10 @@ func onExit() {
 }
 
 func main() {
+	if ensureSingleInstance() {
+		fmt.Println("Ponitor 已在运行")
+		os.Exit(0)
+	}
 	loadConfig()
 	go poll()
 	http.HandleFunc("/", serveDashboard)
