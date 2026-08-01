@@ -73,13 +73,13 @@ Settings persist to `config.json` and survive restarts.
 
 ### 3. Stop
 
-Pick **Quit** from the tray menu. If the tray is not visible (e.g. remote desktop), end the `Ponitor.exe` process from Task Manager.
+Pick **Quit** from the tray menu. If the tray is not visible (e.g. remote desktop), end the `Ponitor_*.exe` process from Task Manager.
 
 ## Build from source
 
 ```bash
 # Requires Go 1.26+ (Windows)
-go build -ldflags="-H=windowsgui -s -w" -o Ponitor.exe .
+go build -ldflags="-H=windowsgui -s -w -X main.version=0.5.0" -o Ponitor_0.5.0.exe .
 # Or double-click rebuild.bat — auto-names the output Ponitor_<version>.exe from the git tag
 ```
 
@@ -87,14 +87,14 @@ Launch: just double-click `Ponitor_*.exe` to run.
 
 ### Build via GitHub Actions
 
-Push a `v*` tag (or trigger manually) to build both Windows artifacts — amd64 + arm64 — and attach them to a Release:
+Push a `v*` tag (or trigger manually) to build both Windows artifacts — x64 + arm — and attach them to a Release:
 
 ```bash
 git tag v0.4.3
 git push origin v0.4.3
 ```
 
-Naming: `Ponitor_<version>_windows_<arch>.exe`, e.g. `Ponitor_v0.4_windows_x64.exe` (x64 / arm).
+Naming: `Ponitor_<version>_windows_<arch>.exe`, e.g. `Ponitor_v0.4.3_windows_x64.exe` (x64 / arm).
 
 ## Metrics
 

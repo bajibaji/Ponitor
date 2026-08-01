@@ -13,9 +13,11 @@
 
 **旧手机不要丢，打开safari或者别的浏览器，变成 PC 的专属性能监视器。** 在 PC 上运行这个二进制文件，同一局域网内的旧手机打开浏览器 —— 多一块实时显示 CPU、内存、GPU、网络流量的"小屏幕"。
 
+**软件截图：**
+
 <p align="center"><img src="./screenshot.png" alt="screenshot"></p>
 
-**实拍效果：**
+
 
 | 横屏（iPhone 7P） | 竖屏预览 |
 |---|---|
@@ -73,13 +75,13 @@
 
 ### 3. 停止
 
-从托盘菜单选「退出」即可。若托盘不可见（如远程桌面），在任务管理器结束 `Ponitor.exe` 进程亦可。
+从托盘菜单选「退出」即可。若托盘不可见（如远程桌面），在任务管理器结束 `Ponitor_*.exe` 进程亦可。
 
 ## 手动编译
 
 ```bash
 # 确保已安装 Go 1.26+（Windows）
-go build -ldflags="-H=windowsgui -s -w" -o Ponitor.exe .
+go build -ldflags="-H=windowsgui -s -w -X main.version=0.5.0" -o Ponitor_0.5.0.exe .
 # 或者直接双击 rebuild.bat（自动从 git tag 取版本号生成 Ponitor_<版本>.exe）
 ```
 
@@ -87,14 +89,14 @@ go build -ldflags="-H=windowsgui -s -w" -o Ponitor.exe .
 
 ### 通过 GitHub Actions 编译
 
-推送 `v*` 标签（或手动触发）即可自动编译 Windows amd64 + arm64 两个产物，并上传到 Release：
+推送 `v*` 标签（或手动触发）即可自动编译 Windows x64 + arm 两个产物，并上传到 Release：
 
 ```bash
 git tag v0.4.3
 git push origin v0.4.3
 ```
 
-产物命名：`Ponitor_<版本>_windows_<架构>.exe`，如 `Ponitor_v0.4_windows_x64.exe`（x64 / arm 两种）。
+产物命名：`Ponitor_<版本>_windows_<架构>.exe`，如 `Ponitor_v0.4.3_windows_x64.exe`（x64 / arm 两种）。
 
 ## 监控项
 
