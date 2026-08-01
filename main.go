@@ -68,7 +68,7 @@ type Config struct {
 
 var (
 	cfgFile = "config.json"
-	cfg     = Config{IntervalMs: 2000, Theme: "green", CardHeight: 180}
+	cfg     = Config{IntervalMs: 2000, Theme: "green", CardHeight: 0} // 0 = 自适应
 )
 
 func loadConfig() {
@@ -350,11 +350,15 @@ func displayUserName() string {
 
 // ── systray ──
 
+// version 构建时注入（rebuild.bat / CI 用 -ldflags "-X main.version=..."）
+var version = "dev"
+
 var (
 	mOpen, mInterval, mHeight, mTheme, mLang, mUser, mAutoStart, mQuit *systray.MenuItem
+	mAuthor, mVersion                                                 *systray.MenuItem
 	iv05, iv1, iv2, iv5                                   *systray.MenuItem
 	thGreen, thAmber, thBlue, thMono                      *systray.MenuItem
-	chAuto, ch180, ch110, ch70, chHp, chHm                *systray.MenuItem
+	chAuto, ch180, ch150, ch110, chSep, chHp, chHm        *systray.MenuItem
 	uReset, uSet                                          *systray.MenuItem
 	langAuto, langZh, langEn                              *systray.MenuItem
 )
@@ -365,11 +369,11 @@ func menuText(lang string) map[string]string {
 		return map[string]string{
 			"open": "打开网页", "interval": "扫描间隔", "theme": "主题配色",
 			"height": "卡片高度", "user": "显示用户名", "lang": "界面语言",
-			"autoStart": "开机自启", "quit": "退出程序",
+			"autoStart": "开机自启", "quit": "退出程序", "author": "作者：DanJuan",
 			"iv05": "0.5 秒", "iv1": "1 秒", "iv2": "2 秒", "iv5": "5 秒",
 			"thGreen": "黑绿 Matrix", "thAmber": "琥珀金 Amber",
 			"thBlue": "赛博蓝 Cyber Blue", "thMono": "黑白 Classic Mono",
-			"hAuto": "自适应 (Auto)", "h180": "默认 (180)", "h110": "紧凑 (110)", "h70": "迷你 (70)",
+			"hAuto": "自适应 (Auto)", "h180": "标准 (180)", "h150": "适中 (150)", "h110": "紧凑 (110)",
 			"hp": "+10", "hm": "-10",
 			"uSet": "自定义用户名…", "uReset": "恢复系统用户名",
 			"langAuto": "自动（跟随系统）", "langZh": "中文", "langEn": "English",
@@ -378,11 +382,11 @@ func menuText(lang string) map[string]string {
 	return map[string]string{
 		"open": "Open Web", "interval": "Interval", "theme": "Theme",
 		"height": "Card Height", "user": "Username", "lang": "Language",
-		"autoStart": "Run at Startup", "quit": "Quit",
+		"autoStart": "Run at Startup", "quit": "Quit", "author": "Author: DanJuan",
 		"iv05": "0.5s", "iv1": "1s", "iv2": "2s", "iv5": "5s",
 		"thGreen": "Matrix Green", "thAmber": "Amber", "thBlue": "Cyber Blue",
 		"thMono": "Classic Mono",
-		"hAuto": "Auto (Adaptive)", "h180": "Default (180)", "h110": "Compact (110)", "h70": "Mini (70)",
+		"hAuto": "Auto (Adaptive)", "h180": "Standard (180)", "h150": "Medium (150)", "h110": "Compact (110)",
 		"hp": "+10", "hm": "-10",
 		"uSet": "Custom…", "uReset": "Reset Username",
 		"langAuto": "Auto (System)", "langZh": "中文", "langEn": "English",
@@ -399,6 +403,8 @@ func applyMenuLang() {
 	mLang.SetTitle(t["lang"])
 	mUser.SetTitle(t["user"])
 	mAutoStart.SetTitle(t["autoStart"])
+	mAuthor.SetTitle(t["author"])
+	mVersion.SetTitle("v" + version)
 	mQuit.SetTitle(t["quit"])
 	iv05.SetTitle(t["iv05"])
 	iv1.SetTitle(t["iv1"])
@@ -410,8 +416,8 @@ func applyMenuLang() {
 	thMono.SetTitle(t["thMono"])
 	chAuto.SetTitle(t["hAuto"])
 	ch180.SetTitle(t["h180"])
+	ch150.SetTitle(t["h150"])
 	ch110.SetTitle(t["h110"])
-	ch70.SetTitle(t["h70"])
 	chHp.SetTitle(t["hp"])
 	chHm.SetTitle(t["hm"])
 	uReset.SetTitle(t["uReset"])
@@ -441,8 +447,10 @@ func onReady() {
 	mHeight = systray.AddMenuItem("", "")
 	chAuto = mHeight.AddSubMenuItem("", "")
 	ch180 = mHeight.AddSubMenuItem("", "")
+	ch150 = mHeight.AddSubMenuItem("", "")
 	ch110 = mHeight.AddSubMenuItem("", "")
-	ch70 = mHeight.AddSubMenuItem("", "")
+	chSep = mHeight.AddSubMenuItem("", "") // 模拟分隔线
+	chSep.Disable()
 	chHp = mHeight.AddSubMenuItem("", "")
 	chHm = mHeight.AddSubMenuItem("", "")
 
@@ -468,6 +476,14 @@ func onReady() {
 	mAutoStart = systray.AddMenuItem("", "")
 
 	systray.AddSeparator()
+
+	// 作者与版本（灰色只读）
+	mAuthor = systray.AddMenuItem("", "")
+	mAuthor.Disable()
+	mVersion = systray.AddMenuItem("", "")
+	mVersion.Disable()
+
+	systray.AddSeparator()
 	mQuit = systray.AddMenuItem("", "")
 
 	applyMenuLang()
@@ -484,8 +500,8 @@ func onReady() {
 		thMono.Uncheck()
 		chAuto.Uncheck()
 		ch180.Uncheck()
+		ch150.Uncheck()
 		ch110.Uncheck()
-		ch70.Uncheck()
 		langAuto.Uncheck()
 		langZh.Uncheck()
 		langEn.Uncheck()
@@ -516,10 +532,10 @@ func onReady() {
 			chAuto.Check()
 		case 180:
 			ch180.Check()
+		case 150:
+			ch150.Check()
 		case 110:
 			ch110.Check()
-		case 70:
-			ch70.Check()
 		}
 		switch cfg.Lang {
 		case "zh":
@@ -591,10 +607,10 @@ func onReady() {
 				setCardHeight(0)
 			case <-ch180.ClickedCh:
 				setCardHeight(180)
+			case <-ch150.ClickedCh:
+				setCardHeight(150)
 			case <-ch110.ClickedCh:
 				setCardHeight(110)
-			case <-ch70.ClickedCh:
-				setCardHeight(70)
 			case <-chHp.ClickedCh:
 				mu.RLock()
 				h := cfg.CardHeight + 10

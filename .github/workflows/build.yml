@@ -43,7 +43,7 @@ jobs:
       - name: Build
         run: |
           CGO_ENABLED=0 GOARCH=${{ matrix.goarch }} \
-            go build -ldflags="-H=windowsgui -s -w" \
+            go build -ldflags="-H=windowsgui -s -w -X main.version=${{ steps.version.outputs.value }}" \
             -o "Ponitor_${{ steps.version.outputs.value }}_windows_${{ matrix.arch }}.exe" .
         shell: bash
 

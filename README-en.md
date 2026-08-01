@@ -34,7 +34,7 @@ A single-binary Go system monitor that replicates the look and feel of a vintage
 - **Zero-dependency single binary** — no Go, Node, or runtime to install; double-click and run. The frontend is static HTML embedded right into the binary
 - **Near-invisible host footprint** — ~20 MB resident RAM, near-zero idle CPU; wakes every 2s to sample then deep-sleeps, completely unnoticeable in daily use
 - **Phone browser, zero install** — connect the phone to the same WiFi, open the page, and it becomes a dedicated monitor screen
-- **Tray menu live tuning** — scan interval (0.5s / 1s / 2s / 5s), 4 themes, card height (for phone portrait/landscape), username, and language (auto / 中文 / English) switch instantly; settings persist to `config.json`
+- **Tray menu live tuning** — scan interval (0.5s / 1s / 2s / 5s), 4 themes, card height (adaptive / fixed presets for phone portrait/landscape), username, language (auto / 中文 / English), and run-at-startup switch instantly; settings persist to `config.json`
 - **Auto alerts** — >70% usage turns yellow, >85% turns red
 - **Landscape adaptive** — rotates to a 2×2 grid layout on phone landscape, filling the whole screen
 
@@ -62,9 +62,11 @@ A system tray icon appears — right-click it for (menu language follows the sys
 - **Open Webpage** — open the dashboard in the default browser
 - **Scan Interval** — 0.5s / 1s / 2s / 5s (applied live, no page reload)
 - **Theme** — Matrix Green / Amber / Cyber Blue / Classic Mono (applied live)
-- **Card Height** — Default (180) / Compact (110) / Mini (70) / +10 / -10, fits phone portrait/landscape
+- **Card Height** — Auto (Adaptive, default) / Standard (180) / Medium (150) / Compact (110) / +10 / -10, fits phone portrait/landscape; Auto computes from the screen height so everything fits in one view
 - **Username** — reset to system username / custom (opens a settings page; defaults to your PC account name)
 - **Language** — Auto (System) / 中文 / English, applies instantly
+- **Run at Startup** — toggle auto-start with Windows
+- **Author & Version** — grey read-only info (author DanJuan + version number)
 - **Quit**
 
 Settings persist to `config.json` and survive restarts.

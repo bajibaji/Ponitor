@@ -14,7 +14,7 @@ if not defined VER set "VER=v0.0"
 set "VER=%VER:v=%"
 set "OUT=Ponitor_%VER%.exe"
 
-go build -ldflags="-H=windowsgui -s -w" -o "%OUT%" .
+go build -ldflags="-H=windowsgui -s -w -X main.version=%VER%" -o "%OUT%" .
 if %ERRORLEVEL% NEQ 0 (
     echo BUILD FAILED!
     pause
