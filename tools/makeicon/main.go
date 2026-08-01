@@ -16,6 +16,8 @@ import (
 )
 
 // drawIcon 渲染 size×size 图标：绿色底，左上角黑色 ">."
+// 像素字体 1:1 渲染：小尺寸用整数 hinting 字号直接绘制（无膨胀），
+// 大尺寸按比例放大字号并适度膨胀，避免下采样破坏笔画
 func drawIcon(size int, f *sfnt.Font) *image.RGBA {
 	img := image.NewRGBA(image.Rect(0, 0, size, size))
 	green := color.RGBA{0, 255, 102, 255}
@@ -24,8 +26,47 @@ func drawIcon(size int, f *sfnt.Font) *image.RGBA {
 			img.SetRGBA(x, y, green)
 		}
 	}
+	dilate1 := func() {
+		orig := image.NewRGBA(img.Bounds())
+		copy(orig.Pix, img.Pix)
+		isBlack := func(x, y int) bool {
+			if x < 0 || y < 0 || x >= size || y >= size {
+				return false
+			}
+			c := orig.RGBAAt(x, y)
+			return c.R == 0 && c.G == 0 && c.B == 0
+		}
+		for y := 0; y < size; y++ {
+			for x := 0; x < size; x++ {
+				if isBlack(x, y) {
+					continue
+				}
+				hit := false
+				for dy := -1; dy <= 1 && !hit; dy++ {
+					for dx := -1; dx <= 1; dx++ {
+						if isBlack(x+dx, y+dy) {
+							hit = true
+							break
+						}
+					}
+				}
+				if hit {
+					img.SetRGBA(x, y, color.RGBA{0, 0, 0, 255})
+				}
+			}
+		}
+	}
+	// 字号:小尺寸取画布能容纳的最大整数档(">." 宽 = 2×字号),
+	// 大尺寸按比例。膨胀仅大尺寸需要(像素字体笔画恒定 1px)。
+	fontSize, margin := float64(size-2)/2, 1
+	dilations := 0
+	if size > 32 {
+		fontSize = float64(size) * 0.43
+		margin = size / 16
+		dilations = size / 64 // 48:0, 64:1, 128:2, 256:4
+	}
 	face, err := opentype.NewFace(f, &opentype.FaceOptions{
-		Size:    float64(size) / 3,
+		Size:    fontSize,
 		DPI:     72,
 		Hinting: font.HintingFull,
 	})
@@ -33,7 +74,6 @@ func drawIcon(size int, f *sfnt.Font) *image.RGBA {
 		panic(err)
 	}
 	defer face.Close()
-	margin := size / 8
 	ascent := face.Metrics().Ascent.Ceil()
 	d := &font.Drawer{
 		Dst:  img,
@@ -42,6 +82,18 @@ func drawIcon(size int, f *sfnt.Font) *image.RGBA {
 		Dot:  fixed.P(margin, margin+ascent),
 	}
 	d.DrawString(">.")
+	// 二值化:抗锯齿灰度全部转纯黑,再做像素膨胀加粗
+	for y := 0; y < size; y++ {
+		for x := 0; x < size; x++ {
+			c := img.RGBAAt(x, y)
+			if !(c.G > 200 && c.B > 50 && c.R < 40) { // 非纯绿背景
+				img.SetRGBA(x, y, color.RGBA{0, 0, 0, 255})
+			}
+		}
+	}
+	for i := 0; i < dilations; i++ {
+		dilate1()
+	}
 	return img
 }
 
@@ -112,7 +164,8 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	if err := os.WriteFile("icon.ico", encodeICO([]int{16, 32, 48, 256}, f), 0o644); err != nil {
+	// Windows 各 DPI 缩放档位对应的标准图标尺寸
+	if err := os.WriteFile("icon.ico", encodeICO([]int{16, 20, 24, 32, 40, 48, 64, 96, 128, 256}, f), 0o644); err != nil {
 		panic(err)
 	}
 }
